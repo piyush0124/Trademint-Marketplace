@@ -1,0 +1,11 @@
+/robots.txt                200 OK  bytes=568  hasSitemap=yes
+/sitemap.xml               200 OK  root=<sitemapindex> entries=4
+                             first=http://127.0.0.1:8013/sitemap-pages.xml
+/sitemap-pages.xml         200 OK  root=<urlset> entries=5
+                             first=http://127.0.0.1:8013
+/sitemap-listings.xml      200 OK  root=<urlset> entries=154
+                             first=http://127.0.0.1:8013/listings/conference-room-av-equipment-small-business-package-08f0249c
+/sitemap-businesses.xml    200 OK  root=<urlset> entries=76
+                             first=http://127.0.0.1:8013/business/kestrel-infra-projects
+/sitemap-categories.xml    200 OK  root=<urlset> entries=114
+                             first=http://127.0.0.1:8013/suppliers?category=real_estate

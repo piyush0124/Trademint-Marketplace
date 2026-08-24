@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+apps/web/node_modules/
+
+# Environment
+.env
+.env.local
+apps/api/.env
+apps/web/.env
+
+# Build
+apps/web/dist/
+
+# IDE / OS
+.idea/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
+# Laravel
+apps/api/vendor/
+apps/api/storage/*.key
+apps/api/database/*.sqlite

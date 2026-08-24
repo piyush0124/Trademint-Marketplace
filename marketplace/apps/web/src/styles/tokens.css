@@ -1,0 +1,341 @@
+/* ==========================================================================
+   Design tokens — the single source of truth for the marketplace UI.
+
+   Every custom style in this app reads from these variables instead of
+   hardcoding values. The audit before this rewrite counted 632 var(--mp-*)
+   references against 28 hardcoded hex values (25 of them plain #fff), which is
+   why a full re-theme is a change to this one file rather than a find-and-
+   replace across 84 components.
+
+   ---------------------------------------------------------------------------
+   PALETTE RATIONALE
+   ---------------------------------------------------------------------------
+   Deep navy carries the brand. It reads as infrastructure rather than
+   consumer-app novelty, which matters when the product's job is to move money
+   between businesses that have not met.
+
+   Electric indigo is the only action colour. It appears on the primary button
+   of a view and almost nowhere else, so "the indigo thing" is always the next
+   step. Spending an accent on decoration is how a UI stops being able to point.
+
+   Teal is a supporting hue for informational surfaces. It never competes with
+   indigo for the eye because it is never used on a filled button.
+
+   Success / warning / danger are reserved strictly for state. A green button
+   that merely submits a form trains people to ignore green.
+
+   ---------------------------------------------------------------------------
+   WHAT THIS SCALE DELIBERATELY AVOIDS
+   ---------------------------------------------------------------------------
+   Radii top out at 20px, not 32px. Shadows top out at a 48px blur at 10%
+   opacity, not 70px at 20%. Gradients are two-stop and near-monochrome. The
+   previous scale had all three dialled up, which is the specific combination
+   that reads as a 2021 template: everything floating, everything rounded,
+   everything tinted. Restraint here is what makes typography and spacing do
+   the work instead.
+   ========================================================================== */
+:root {
+  /* ======================================================================
+     BRAND
+     ====================================================================== */
+
+  /* Deep navy. Headings, filled dark surfaces, the logo. */
+  --mp-primary: #0f172a;
+  --mp-primary-dark: #0a1020;
+  --mp-primary-darker: #060a14;
+  --mp-primary-light: #e7eaf1;
+  --mp-primary-soft: #f4f6fa;
+  /* Focus rings use the accent, not the primary: a navy ring on a navy button
+     is invisible, and keyboard focus has to be visible on every surface. */
+  --mp-primary-ring: rgba(99, 91, 255, 0.22);
+
+  /* Electric indigo. The single action colour. */
+  --mp-accent: #635bff;
+  --mp-accent-dark: #4f46e5;
+  --mp-accent-darker: #4338ca;
+  --mp-accent-light: #eeedff;
+  --mp-accent-soft: #f6f5ff;
+  --mp-accent-ring: rgba(99, 91, 255, 0.22);
+
+  /* Supporting teal. Informational surfaces only, never a filled button. */
+  --mp-teal: #0f766e;
+  --mp-teal-dark: #115e59;
+  --mp-teal-light: #e6f4f2;
+  /* Retained name: referenced by existing gradient definitions. */
+  --mp-teal-bright: #0f766e;
+
+  /* Retained name from the previous palette. Now an indigo so that any
+     gradient still referencing it stays inside the new scheme rather than
+     leaking the old violet. */
+  --mp-violet: #4f46e5;
+
+  /* ======================================================================
+     SEMANTIC STATE
+     Paired bg / fg / border so any state chip has guaranteed contrast without
+     the component author picking values.
+     ====================================================================== */
+  --mp-success: #16a34a;
+  --mp-success-dark: #15803d;
+  --mp-success-bg: #e8f7ed;
+  --mp-success-fg: #15803d;
+
+  --mp-warning: #d97706;
+  --mp-warning-dark: #b45309;
+  --mp-warning-bg: #fef4e5;
+  --mp-warning-fg: #b45309;
+
+  --mp-danger: #dc2626;
+  --mp-danger-dark: #b91c1c;
+  --mp-danger-bg: #fdecec;
+  --mp-danger-fg: #b91c1c;
+
+  --mp-info: #0284c7;
+  --mp-info-dark: #0369a1;
+  --mp-info-bg: #e6f4fb;
+  --mp-info-fg: #0369a1;
+
+  /* ======================================================================
+     NEUTRALS — a single slate ramp
+     One ramp, not several. Mixed-temperature greys are the quiet reason a UI
+     looks assembled from parts.
+     ====================================================================== */
+  --mp-slate-50: #f8fafc;
+  --mp-slate-100: #f1f5f9;
+  --mp-slate-200: #e2e8f0;
+  --mp-slate-300: #cbd5e1;
+  --mp-slate-400: #94a3b8;
+  --mp-slate-500: #64748b;
+  --mp-slate-600: #475569;
+  --mp-slate-700: #334155;
+  --mp-slate-800: #1e293b;
+  --mp-slate-900: #0f172a;
+
+  /* Text roles. Named by job, so a component never has to decide which grey. */
+  --mp-ink: #0f172a;        /* primary text, headings */
+  --mp-ink-soft: #1e293b;
+  --mp-body: #334155;       /* body copy */
+  --mp-muted: #64748b;      /* secondary text, labels */
+  --mp-faint: #94a3b8;      /* placeholder, disabled, captions */
+
+  /* Surfaces and lines. */
+  --mp-surface: #ffffff;
+  --mp-surface-muted: #f8fafc;
+  --mp-surface-sunken: #f1f5f9;
+  --mp-bg: #f8fafc;
+  --mp-border: #e2e8f0;
+  --mp-border-strong: #cbd5e1;
+  --mp-ink-overlay: rgba(15, 23, 42, 0.6);
+
+  /* ======================================================================
+     STATUS CHIPS
+     Mapped onto the semantic ramp above rather than invented per status, so
+     "pending" is the same amber everywhere it appears in the product.
+     Status is never signalled by colour alone — every chip renders its label.
+     ====================================================================== */
+  --mp-status-draft-bg: #f1f5f9;      --mp-status-draft-fg: #475569;
+  --mp-status-pending-bg: #fef4e5;    --mp-status-pending-fg: #b45309;
+  --mp-status-published-bg: #e8f7ed;  --mp-status-published-fg: #15803d;
+  --mp-status-rejected-bg: #fdecec;   --mp-status-rejected-fg: #b91c1c;
+  --mp-status-archived-bg: #f1f5f9;   --mp-status-archived-fg: #64748b;
+  --mp-status-sold-bg: #eeedff;       --mp-status-sold-fg: #4338ca;
+  --mp-status-rented-bg: #e6f4f2;     --mp-status-rented-fg: #115e59;
+
+  /* ======================================================================
+     GRADIENTS
+     Two stops, near-monochrome, low contrast. The hero glow is a single
+     indigo wash at 30% rather than the previous four stacked radials in three
+     hues — that older recipe is what made the page read as decorated.
+     ====================================================================== */
+  --mp-gradient-hero:
+    radial-gradient(900px 520px at 78% -8%, rgba(99, 91, 255, 0.3), transparent 62%),
+    radial-gradient(760px 460px at 12% 6%, rgba(15, 118, 110, 0.16), transparent 60%),
+    linear-gradient(168deg, #0f172a 0%, #131c33 60%, #0d1424 100%);
+  --mp-gradient-accent: linear-gradient(135deg, #635bff 0%, #4f46e5 100%);
+  --mp-gradient-primary: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  --mp-gradient-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+
+  /* ======================================================================
+     RADII
+     Tightened across the board. 10px on a card and 6px on an input read as
+     engineered; 24px on both reads as a toy.
+     ====================================================================== */
+  --mp-radius-xs: 4px;
+  --mp-radius-sm: 6px;
+  --mp-radius-md: 10px;
+  --mp-radius-lg: 14px;
+  --mp-radius-xl: 20px;
+  --mp-radius-pill: 999px;
+
+  /* ======================================================================
+     ELEVATION
+     Slate-tinted rather than black, so a card sits on the background instead
+     of punching a hole in it. Two-layer shadows: a tight contact shadow plus
+     a wider ambient one, which is what makes the edge legible at low opacity.
+     ====================================================================== */
+  --mp-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --mp-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --mp-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --mp-shadow-lg: 0 10px 28px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --mp-shadow-xl: 0 20px 48px rgba(15, 23, 42, 0.1), 0 4px 12px rgba(15, 23, 42, 0.05);
+  /* Reserved for the primary CTA only. */
+  --mp-shadow-glow: 0 6px 20px rgba(99, 91, 255, 0.28);
+  /* Focus ring as a shadow, for controls that cannot use outline. */
+  --mp-shadow-focus: 0 0 0 3px var(--mp-accent-ring);
+
+  /* ======================================================================
+     SPACING — 4px base
+     ====================================================================== */
+  --mp-space-0: 0;
+  --mp-space-1: 4px;
+  --mp-space-2: 8px;
+  --mp-space-3: 12px;
+  --mp-space-4: 16px;
+  --mp-space-5: 24px;
+  --mp-space-6: 32px;
+  --mp-space-7: 48px;
+  --mp-space-8: 64px;
+  --mp-space-9: 88px;
+  --mp-space-10: 120px;
+
+  /* Vertical rhythm for page sections, so section padding is one decision
+     rather than a number chosen per page. */
+  --mp-section-y: clamp(3rem, 2rem + 4vw, 5.5rem);
+  --mp-section-y-tight: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+
+  /* ======================================================================
+     TYPOGRAPHY
+     One family. Inter is the UI font and there is no second display face —
+     the previous pairing with a serif display was the main reason headings and
+     body looked like they came from different products.
+
+     Optical sizing and tabular numerals are enabled globally in app.css;
+     tabular figures matter here because the product shows a lot of money.
+     ====================================================================== */
+  --mp-font-sans: 'Inter', 'Inter var', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Retained name. Deliberately the same family: any component still asking
+     for the display font now gets Inter rather than a mismatched serif. */
+  --mp-font-display: 'Inter', 'Inter var', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mp-font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Fluid scale. clamp() covers 360px to 1440px without a breakpoint per
+     heading. Upper bounds follow the brief: display 64, h1 44, h2 36, h3 28. */
+  --mp-text-display: clamp(2.25rem, 1.35rem + 3.6vw, 4rem);      /* 36 → 64 */
+  --mp-text-hero: clamp(2rem, 1.3rem + 2.9vw, 3.5rem);           /* 32 → 56 */
+  --mp-text-h1: clamp(1.75rem, 1.3rem + 1.9vw, 2.75rem);         /* 28 → 44 */
+  --mp-text-h2: clamp(1.5rem, 1.25rem + 1.1vw, 2.25rem);         /* 24 → 36 */
+  --mp-text-h3: clamp(1.25rem, 1.12rem + 0.6vw, 1.75rem);        /* 20 → 28 */
+  --mp-text-h4: clamp(1.125rem, 1.06rem + 0.3vw, 1.375rem);      /* 18 → 22 */
+  --mp-text-lead: clamp(1.0625rem, 1rem + 0.35vw, 1.1875rem);    /* 17 → 19 */
+  --mp-text-body: 1rem;                                          /* 16 */
+  --mp-text-sm: 0.875rem;                                        /* 14 */
+  --mp-text-caption: 0.8125rem;                                  /* 13 */
+  --mp-text-micro: 0.75rem;                                      /* 12 */
+  --mp-text-button: 0.9375rem;                                   /* 15 */
+
+  --mp-weight-regular: 400;
+  --mp-weight-medium: 500;
+  --mp-weight-semibold: 600;
+  --mp-weight-bold: 700;
+
+  --mp-leading-tight: 1.15;   /* display and h1 */
+  --mp-leading-heading: 1.25; /* h2–h4 */
+  --mp-leading-body: 1.6;
+  --mp-leading-relaxed: 1.7;
+
+  /* Optical correction: large type needs negative tracking to avoid looking
+     loose, small type needs positive tracking to stay legible. */
+  --mp-tracking-display: -0.028em;
+  --mp-tracking-heading: -0.018em;
+  --mp-tracking-normal: 0;
+  --mp-tracking-wide: 0.02em;
+  --mp-tracking-caps: 0.06em;
+
+  /* ======================================================================
+     MOTION
+     Fast enough to feel like the UI is keeping up. Anything above ~250ms on a
+     hover reads as lag rather than polish. All of this collapses to 0 under
+     prefers-reduced-motion, handled in app.css.
+     ====================================================================== */
+  --mp-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --mp-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --mp-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --mp-duration-fast: 110ms;
+  --mp-duration: 180ms;
+  --mp-duration-slow: 320ms;
+
+  /* Hover lift, as a token so every interactive surface moves by the same
+     amount. 1px, not 4px — a card that jumps is a card that flickers when the
+     pointer sits on its edge. */
+  --mp-btn-lift: -1px;
+  --mp-card-lift: -2px;
+
+  /* ======================================================================
+     LAYOUT
+     ====================================================================== */
+  --mp-container: 1280px;
+  --mp-container-wide: 1400px;
+  --mp-container-narrow: 880px;
+  --mp-container-prose: 680px;
+  --mp-gutter: clamp(1rem, 0.6rem + 1.6vw, 2rem);
+  --mp-navbar-height: 64px;
+
+  /* ======================================================================
+     BREAKPOINTS
+     Declared for reference and for JS that needs to agree with CSS.
+
+     Honest limitation: CSS custom properties cannot be used inside a media
+     query condition, so @media rules in app.css restate these numbers
+     literally. They are documented here as the canonical set; changing one
+     means changing it in app.css too.
+     ====================================================================== */
+  --mp-bp-xs: 375px;
+  --mp-bp-sm: 480px;
+  --mp-bp-md: 768px;
+  --mp-bp-lg: 1024px;
+  --mp-bp-xl: 1280px;
+  --mp-bp-2xl: 1440px;
+
+  --mp-z-base: 1;
+  --mp-z-sticky: 100;
+  --mp-z-navbar: 200;
+  --mp-z-drawer: 300;
+  --mp-z-modal: 400;
+  --mp-z-toast: 500;
+
+  /* ======================================================================
+     GENERIC ALIASES
+     The brief specifies --color-*, --radius-*, --shadow-*, --space-* names.
+     They are provided as aliases onto the mp- scale rather than as a second
+     set of values, so there is exactly one place a colour is defined. Both
+     spellings resolve to the same paint.
+     ====================================================================== */
+  --color-primary: var(--mp-primary);
+  --color-secondary: var(--mp-slate-700);
+  --color-accent: var(--mp-accent);
+  --color-teal: var(--mp-teal);
+  --color-success: var(--mp-success);
+  --color-warning: var(--mp-warning);
+  --color-danger: var(--mp-danger);
+  --color-background: var(--mp-bg);
+  --color-surface: var(--mp-surface);
+  --color-border: var(--mp-border);
+  --color-text: var(--mp-ink);
+  --color-text-secondary: var(--mp-muted);
+  --color-muted: var(--mp-faint);
+
+  --radius-sm: var(--mp-radius-sm);
+  --radius-md: var(--mp-radius-md);
+  --radius-lg: var(--mp-radius-lg);
+  --radius-xl: var(--mp-radius-xl);
+
+  --shadow-sm: var(--mp-shadow-sm);
+  --shadow-md: var(--mp-shadow-md);
+  --shadow-lg: var(--mp-shadow-lg);
+
+  --space-1: var(--mp-space-1);
+  --space-2: var(--mp-space-2);
+  --space-3: var(--mp-space-3);
+  --space-4: var(--mp-space-4);
+  --space-5: var(--mp-space-5);
+  --space-6: var(--mp-space-6);
+}

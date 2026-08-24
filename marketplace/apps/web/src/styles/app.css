@@ -1,0 +1,3393 @@
+@import './tokens.css';
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  /* Anchored sections must clear the sticky navbar. */
+  scroll-padding-top: calc(var(--mp-navbar-height) + var(--mp-space-4));
+}
+
+body {
+  background-color: var(--mp-bg);
+  color: var(--mp-body);
+  font-family: var(--mp-font-sans);
+  /* 16px. The previous 0.975rem (15.6px) was below the brief's 15–17px body
+     range once nested elements scaled it down, and small body text is the most
+     common reason a dense B2B UI feels like hard work. */
+  font-size: var(--mp-text-body);
+  font-weight: var(--mp-weight-regular);
+  line-height: var(--mp-leading-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /*
+   * Inter feature settings.
+   *
+   * `tnum` (tabular numerals) is the one that earns its place here: this
+   * product shows money and quantities in stacked rows, and proportional
+   * digits make a column of prices visibly ragged. `cv05` gives the lowercase
+   * l a tail, which disambiguates l/1/I in reference codes and IDs.
+   */
+  font-feature-settings: 'tnum' 1, 'cv05' 1, 'ss03' 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--mp-tracking-normal);
+}
+
+/* Headings. One family with the body now, differentiated by weight, size and
+   tracking rather than by a second typeface. */
+h1, h2, h3, h4, h5, h6, .display-font {
+  font-family: var(--mp-font-display);
+  color: var(--mp-ink);
+  font-weight: var(--mp-weight-semibold);
+  letter-spacing: var(--mp-tracking-heading);
+  line-height: var(--mp-leading-heading);
+  text-wrap: balance;
+  margin: 0;
+}
+
+h1 { font-size: var(--mp-text-h1); line-height: var(--mp-leading-tight); letter-spacing: var(--mp-tracking-display); }
+h2 { font-size: var(--mp-text-h2); }
+h3 { font-size: var(--mp-text-h3); }
+h4 { font-size: var(--mp-text-h4); }
+
+/* Body copy in prose blocks reads better slightly wider than the UI default,
+   and `pretty` avoids a single orphaned word on the last line. */
+p { line-height: var(--mp-leading-relaxed); margin: 0; text-wrap: pretty; }
+
+/* Links are indigo, not navy: navy on navy-toned body text is not
+   distinguishable, and colour must never be the only affordance. In prose,
+   links are also underlined. */
+a {
+  color: var(--mp-accent-dark);
+  text-decoration: none;
+  transition: color var(--mp-duration-fast) var(--mp-ease);
+}
+a:hover { color: var(--mp-accent-darker); }
+p > a:not([class]) { text-decoration: underline; text-underline-offset: 2px; }
+
+/* Focus ring uses the accent so it is visible against both light surfaces and
+   the navy hero. 2px + offset clears the control's own border. */
+:focus-visible {
+  outline: 2px solid var(--mp-accent);
+  outline-offset: 2px;
+  border-radius: var(--mp-radius-xs);
+}
+/* Dark surfaces need a light ring; an indigo outline on navy is too close. */
+.mp-hero :focus-visible,
+.mp-navbar--dark :focus-visible,
+.mp-footer :focus-visible {
+  outline-color: #ffffff;
+}
+
+::selection { background: var(--mp-accent-light); color: var(--mp-accent-darker); }
+
+/* Small-print roles, so components stop hand-rolling font sizes. */
+.mp-text-lead { font-size: var(--mp-text-lead); line-height: var(--mp-leading-body); color: var(--mp-muted); }
+.mp-text-sm { font-size: var(--mp-text-sm); }
+.mp-text-caption { font-size: var(--mp-text-caption); color: var(--mp-muted); }
+.mp-text-micro { font-size: var(--mp-text-micro); color: var(--mp-faint); }
+.mp-eyebrow {
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  letter-spacing: var(--mp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--mp-muted);
+}
+.mp-tabular { font-variant-numeric: tabular-nums; }
+
+/* Screen-reader-only, for the labels and live-region text that must exist in
+   the accessibility tree but not on screen. */
+.mp-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link: first tabbable element on the page, visible only when focused. */
+.mp-skip-link {
+  position: absolute;
+  top: var(--mp-space-2);
+  left: var(--mp-space-2);
+  z-index: var(--mp-z-toast);
+  padding: var(--mp-space-3) var(--mp-space-4);
+  background: var(--mp-surface);
+  color: var(--mp-ink);
+  border-radius: var(--mp-radius-sm);
+  box-shadow: var(--mp-shadow-lg);
+  font-size: var(--mp-text-sm);
+  font-weight: var(--mp-weight-semibold);
+  transform: translateY(-200%);
+  transition: transform var(--mp-duration) var(--mp-ease-out);
+}
+.mp-skip-link:focus-visible { transform: translateY(0); }
+
+/*
+ * Motion opt-out.
+ *
+ * Honoured globally rather than per-component: a vestibular trigger is not
+ * something to handle case by case, and `scroll-behavior: smooth` on <html> is
+ * itself a common complaint, so it is reset here too.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.mp-container {
+  max-width: var(--mp-container);
+  margin: 0 auto;
+  padding: 0 var(--mp-space-5);
+}
+.mp-container--narrow { max-width: var(--mp-container-narrow); }
+
+@media (max-width: 576px) {
+  .mp-container { padding: 0 var(--mp-space-4); }
+}
+
+/* Vertical rhythm for landing sections, so each one doesn't hand-roll padding. */
+.mp-section { padding: var(--mp-space-9) 0; }
+.mp-section--tight { padding: var(--mp-space-7) 0; }
+.mp-section--muted { background: var(--mp-surface-muted); }
+.mp-section--sunken { background: var(--mp-surface-sunken); }
+
+@media (max-width: 767px) {
+  .mp-section { padding: var(--mp-space-7) 0; }
+}
+
+/* ==========================================================================
+   Buttons — layered on top of Bootstrap's .btn
+
+   Shared geometry lives in one selector list so the four variants can never
+   drift apart in height, radius or weight.
+   ========================================================================== */
+.btn-mp-primary,
+.btn-mp-accent,
+.btn-mp-outline,
+.btn-mp-light {
+  --mp-btn-lift: -1px;
+  font-weight: 650;
+  border-radius: var(--mp-radius-pill);
+  padding: 0.68rem 1.5rem;
+  border-width: 1.5px;
+  border-style: solid;
+  line-height: 1.35;
+  transition:
+    background var(--mp-duration-fast) var(--mp-ease),
+    border-color var(--mp-duration-fast) var(--mp-ease),
+    color var(--mp-duration-fast) var(--mp-ease),
+    box-shadow var(--mp-duration) var(--mp-ease),
+    transform var(--mp-duration-fast) var(--mp-ease);
+}
+.btn-mp-primary:hover,
+.btn-mp-accent:hover,
+.btn-mp-outline:hover,
+.btn-mp-light:hover { transform: translateY(var(--mp-btn-lift)); }
+.btn-mp-primary:active,
+.btn-mp-accent:active,
+.btn-mp-outline:active,
+.btn-mp-light:active { transform: translateY(1px); }
+
+.btn-mp-primary {
+  background: var(--mp-primary);
+  border-color: var(--mp-primary);
+  color: #fff;
+  box-shadow: var(--mp-shadow-xs);
+}
+.btn-mp-primary:hover,
+.btn-mp-primary:focus {
+  background: var(--mp-primary-dark);
+  border-color: var(--mp-primary-dark);
+  color: #fff;
+  box-shadow: var(--mp-shadow-md);
+}
+
+/* Amber is reserved for the actions that create commerce. */
+.btn-mp-accent {
+  background: var(--mp-gradient-accent);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--mp-shadow-xs);
+}
+.btn-mp-accent:hover,
+.btn-mp-accent:focus {
+  background: var(--mp-accent-dark);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--mp-shadow-glow);
+}
+
+.btn-mp-outline {
+  background: transparent;
+  border-color: var(--mp-border-strong);
+  color: var(--mp-ink);
+}
+.btn-mp-outline:hover,
+.btn-mp-outline:focus {
+  border-color: var(--mp-primary);
+  color: var(--mp-primary);
+  background: var(--mp-primary-soft);
+}
+
+/* For use on dark/gradient backgrounds, where an outline button disappears. */
+.btn-mp-light {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+.btn-mp-light:hover,
+.btn-mp-light:focus {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: transparent;
+  color: var(--mp-primary-dark);
+}
+
+.btn-mp-ghost {
+  background: transparent;
+  border: none;
+  color: var(--mp-body);
+  font-weight: 600;
+  transition: color var(--mp-duration-fast) var(--mp-ease);
+}
+.btn-mp-ghost:hover { color: var(--mp-primary); }
+
+.btn-sm.btn-mp-primary,
+.btn-sm.btn-mp-accent,
+.btn-sm.btn-mp-outline,
+.btn-sm.btn-mp-light { padding: 0.42rem 1.05rem; font-size: 0.86rem; }
+
+.btn-lg.btn-mp-primary,
+.btn-lg.btn-mp-accent,
+.btn-lg.btn-mp-outline,
+.btn-lg.btn-mp-light { padding: 0.9rem 2rem; font-size: 1.02rem; }
+
+/* ==========================================================================
+   Cards
+   ========================================================================== */
+.mp-card {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  box-shadow: var(--mp-shadow-xs);
+}
+
+/* Opt-in hover for cards that are themselves links. A static info card must not
+   pretend to be clickable. */
+.mp-card--interactive {
+  transition: box-shadow var(--mp-duration) var(--mp-ease), transform var(--mp-duration) var(--mp-ease),
+    border-color var(--mp-duration) var(--mp-ease);
+}
+.mp-card--interactive:hover {
+  box-shadow: var(--mp-shadow-md);
+  transform: translateY(-3px);
+  border-color: var(--mp-border-strong);
+}
+
+/* ==========================================================================
+   Status badge — single source of truth for status color mapping
+   ========================================================================== */
+.mp-status-badge {
+  border-radius: var(--mp-radius-pill);
+  font-weight: 650;
+  letter-spacing: 0.005em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--mp-radius-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.mp-status-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.mp-status-draft { background: var(--mp-status-draft-bg); color: var(--mp-status-draft-fg); }
+.mp-status-pending_review { background: var(--mp-status-pending-bg); color: var(--mp-status-pending-fg); }
+.mp-status-published { background: var(--mp-status-published-bg); color: var(--mp-status-published-fg); }
+.mp-status-rejected { background: var(--mp-status-rejected-bg); color: var(--mp-status-rejected-fg); }
+.mp-status-archived { background: var(--mp-status-archived-bg); color: var(--mp-status-archived-fg); }
+.mp-status-sold { background: var(--mp-status-sold-bg); color: var(--mp-status-sold-fg); }
+.mp-status-rented { background: var(--mp-status-rented-bg); color: var(--mp-status-rented-fg); }
+.mp-status-available { background: var(--mp-status-published-bg); color: var(--mp-status-published-fg); }
+.mp-status-expired, .mp-status-inactive { background: var(--mp-status-archived-bg); color: var(--mp-status-archived-fg); }
+
+/* ==========================================================================
+   Listing card
+   ========================================================================== */
+.mp-listing-card {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.mp-listing-card:hover {
+  box-shadow: var(--mp-shadow-md);
+  transform: translateY(-2px);
+}
+.mp-listing-card__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, var(--mp-surface-muted), var(--mp-border));
+  overflow: hidden;
+}
+.mp-listing-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mp-listing-card__badges {
+  position: absolute;
+  top: var(--mp-space-3);
+  left: var(--mp-space-3);
+  display: flex;
+  gap: 0.4rem;
+}
+.mp-listing-card__favorite {
+  position: absolute;
+  top: var(--mp-space-3);
+  right: var(--mp-space-3);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: var(--mp-shadow-sm);
+}
+.mp-listing-card__image-count {
+  position: absolute;
+  bottom: var(--mp-space-3);
+  right: var(--mp-space-3);
+  background: rgba(20, 32, 30, 0.72);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--mp-radius-pill);
+}
+.mp-listing-card__body {
+  padding: var(--mp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex-grow: 1;
+}
+.mp-price {
+  font-family: var(--mp-font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--mp-ink);
+}
+.mp-listing-card__title {
+  font-weight: 600;
+  color: var(--mp-ink);
+  font-size: 0.98rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mp-listing-card__location {
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+}
+.mp-listing-card__specs {
+  color: var(--mp-muted);
+  font-size: 0.82rem;
+  border-top: 1px dashed var(--mp-border);
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+}
+.mp-listing-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--mp-space-4) var(--mp-space-4);
+  gap: 0.5rem;
+}
+
+.mp-badge-featured {
+  background: var(--mp-accent);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--mp-radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.mp-badge-verified {
+  background: var(--mp-success-bg);
+  color: var(--mp-success-fg);
+  /* 0.68rem was under 11px, below the brief's floor and genuinely hard to read.
+     Raised to the caption size; the badge is a trust signal, so it has to be
+     legible rather than merely present. */
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--mp-radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+/* ==========================================================================
+   Hero
+   ========================================================================== */
+.mp-hero {
+  background: var(--mp-gradient-hero);
+  background-color: var(--mp-primary-darker);
+  color: #fff;
+  padding: var(--mp-space-9) 0 var(--mp-space-10);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Fine grid, barely visible. It gives the gradient something to sit on so the
+   hero reads as a surface rather than a wash of colour. */
+.mp-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 30%, transparent 78%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Curved join into the page below — softens the hardest edge on the page. */
+.mp-hero::after {
+  content: '';
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: -60px;
+  height: 120px;
+  background: var(--mp-bg);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  pointer-events: none;
+}
+
+.mp-hero h1 {
+  color: #fff;
+  font-size: var(--mp-text-display);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+/* The one phrase worth emphasising, in the accent, underlined by a soft swash. */
+.mp-hero h1 em {
+  font-style: normal;
+  position: relative;
+  background: linear-gradient(100deg, #ffd9ad, var(--mp-accent) 55%, #ffc078);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.mp-hero p.lead {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: var(--mp-text-lead);
+  max-width: 40rem;
+}
+.mp-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.85rem 0.3rem 0.4rem;
+  border-radius: var(--mp-radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(8px);
+}
+.mp-hero__eyebrow strong {
+  background: var(--mp-accent);
+  border-radius: var(--mp-radius-pill);
+  padding: 0.1rem 0.6rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Proof strip under the hero CTAs. Numbers only, no adjectives. */
+.mp-hero__proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mp-space-5) var(--mp-space-7);
+  padding-top: var(--mp-space-5);
+  margin-top: var(--mp-space-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.mp-hero__proof-value {
+  font-family: var(--mp-font-display);
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.mp-hero__proof-label {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: var(--mp-text-caption);
+  font-weight: var(--mp-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--mp-tracking-caps);
+  margin-top: 0.35rem;
+}
+
+/* ---- Split hero ----
+   Left-aligned copy against a figures panel.
+
+   A centred hero with a centred sub-head and centred button row is the most
+   template-like arrangement available, and no amount of palette work rescues it.
+   An asymmetric split reads as a product because it implies the page has more to
+   say than a slogan. Text-align is reset explicitly because the centred variant
+   inherits it from the section. */
+.mp-hero--split { text-align: left; }
+.mp-hero--split h1,
+.mp-hero--split p.lead { margin-left: 0; margin-right: 0; }
+.mp-hero--split p.lead { max-width: 34rem; }
+
+.mp-hero__panel {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--mp-radius-lg);
+  padding: var(--mp-space-5);
+  /* Frosted rather than opaque, so the hero gradient still reads through it and
+     the panel sits *in* the hero instead of on top of it. */
+  backdrop-filter: blur(6px);
+}
+.mp-hero__panel-head {
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  letter-spacing: var(--mp-tracking-caps);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  padding-bottom: var(--mp-space-3);
+  margin-bottom: var(--mp-space-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+/* A definition list, because these genuinely are label/value pairs. Using dl
+   rather than divs means the relationship survives into the accessibility tree. */
+.mp-hero__figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mp-space-4) var(--mp-space-3);
+  margin: 0;
+}
+.mp-hero__figures dt {
+  font-size: var(--mp-text-micro);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: var(--mp-weight-regular);
+  order: 2;
+}
+.mp-hero__figures dd {
+  font-size: var(--mp-text-h3);
+  font-weight: var(--mp-weight-bold);
+  color: #ffffff;
+  line-height: 1.1;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  order: 1;
+}
+/* Each pair is its own grid item so dt/dd can be reordered visually — value
+   above label — without reordering the markup, which must stay dt-then-dd. */
+.mp-hero__figures > div { display: flex; flex-direction: column; }
+
+@media (max-width: 991.98px) {
+  .mp-hero--split { text-align: center; }
+  .mp-hero--split p.lead { margin-left: auto; margin-right: auto; }
+  .mp-hero--split .d-flex.flex-wrap { justify-content: center; }
+  .mp-hero--split .mp-trust-strip { justify-content: center; }
+  .mp-hero__panel { margin-top: var(--mp-space-5); text-align: left; }
+}
+@media (max-width: 400px) {
+  .mp-hero__figures { grid-template-columns: 1fr; }
+}
+
+/* ---- Search ----
+   Floats over the hero/page boundary on a pill, which is what makes it read as
+   the primary action rather than one more field. */
+.mp-search-bar {
+  background: var(--mp-surface);
+  border-radius: var(--mp-radius-lg);
+  box-shadow: var(--mp-shadow-xl);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  padding: var(--mp-space-3);
+  position: relative;
+  z-index: 1;
+}
+.mp-search-bar .form-control,
+.mp-search-bar .form-select {
+  border: none;
+  padding: 0.75rem 0.95rem;
+  font-size: 0.95rem;
+  background: transparent;
+}
+.mp-search-bar .form-control::placeholder { color: var(--mp-faint); }
+.mp-search-bar .form-control:focus,
+.mp-search-bar .form-select:focus { box-shadow: none; }
+/* Hairline between the two inputs, desktop only — on mobile they stack. */
+@media (min-width: 768px) {
+  .mp-search-bar__divider { border-left: 1px solid var(--mp-border); }
+}
+
+.mp-search-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mp-space-2);
+  justify-content: center;
+  margin-top: var(--mp-space-4);
+}
+.mp-search-suggestions a {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: var(--mp-radius-pill);
+  padding: 0.28rem 0.8rem;
+  transition: background var(--mp-duration-fast) var(--mp-ease), color var(--mp-duration-fast) var(--mp-ease);
+}
+.mp-search-suggestions a:hover { background: #fff; color: var(--mp-primary-dark); }
+
+/* ---- Category tile ---- */
+.mp-category-pill {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  padding: var(--mp-space-4) var(--mp-space-3);
+  text-align: center;
+  color: var(--mp-ink);
+  font-weight: 650;
+  font-size: 0.9rem;
+  transition: border-color var(--mp-duration) var(--mp-ease), transform var(--mp-duration) var(--mp-ease),
+    box-shadow var(--mp-duration) var(--mp-ease);
+  display: block;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+/* Accent wipe from the bottom on hover, instead of just a border change. */
+.mp-category-pill::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: var(--mp-gradient-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--mp-duration) var(--mp-ease-out);
+}
+.mp-category-pill:hover {
+  border-color: var(--mp-border-strong);
+  color: var(--mp-primary-dark);
+  transform: translateY(-3px);
+  box-shadow: var(--mp-shadow-md);
+}
+.mp-category-pill:hover::after { transform: scaleX(1); }
+.mp-category-pill__icon {
+  font-size: 1.55rem;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 0.55rem;
+  border-radius: var(--mp-radius-sm);
+  background: var(--mp-primary-soft);
+}
+.mp-category-pill__meta {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--mp-muted);
+  margin-top: 0.2rem;
+}
+
+/* ---- Section headings ---- */
+.mp-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--mp-space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--mp-space-6);
+}
+.mp-section-heading h2 { margin: 0; font-size: var(--mp-text-h2); }
+.mp-section-heading p { margin: 0.4rem 0 0; color: var(--mp-muted); max-width: 46rem; }
+.mp-section-heading--center { flex-direction: column; align-items: center; text-align: center; }
+
+.mp-eyebrow {
+  color: var(--mp-primary);
+  font-weight: 750;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+/* Small leading rule — reads as a label rather than a shouty caption. */
+.mp-eyebrow::before {
+  content: '';
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.55;
+}
+.mp-section-heading--center .mp-eyebrow::before { display: none; }
+
+/* ==========================================================================
+   States: empty / loading / error
+   ========================================================================== */
+.mp-state {
+  text-align: center;
+  padding: var(--mp-space-8) var(--mp-space-4);
+  color: var(--mp-muted);
+}
+/* Holds an SVG rather than an emoji glyph, so it is sized and coloured here
+   instead of inheriting whatever the platform emoji font decided. Muted on a
+   tinted disc: an empty state should be calm, not alarming. */
+.mp-state__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--mp-space-4);
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-surface-sunken);
+  color: var(--mp-faint);
+}
+.mp-state h3 { font-size: 1.15rem; margin-bottom: 0.4rem; color: var(--mp-ink); }
+
+/*
+ * Skeletons.
+ *
+ * Sized modifiers exist so a placeholder occupies roughly the height of the
+ * content replacing it. A zero-height shimmer is worse than no skeleton at all:
+ * the page renders empty, then jumps when data lands, which is the layout shift
+ * a skeleton is supposed to prevent.
+ */
+.mp-skeleton {
+  background: linear-gradient(90deg, var(--mp-surface-muted) 25%, var(--mp-border) 50%, var(--mp-surface-muted) 75%);
+  background-size: 200% 100%;
+  animation: mp-shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--mp-radius-sm);
+  /* Default height, so a bare .mp-skeleton is never invisible. */
+  height: 1rem;
+}
+.mp-skeleton--title { height: 2rem; width: 42%; border-radius: var(--mp-radius-sm); }
+.mp-skeleton--text { height: 0.9rem; width: 100%; }
+.mp-skeleton--block { height: 9rem; border-radius: var(--mp-radius-md); }
+.mp-skeleton--avatar { height: 44px; width: 44px; border-radius: var(--mp-radius-pill); }
+
+@keyframes mp-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/*
+ * Reduced motion: hold a flat tone rather than shimmering. The global
+ * prefers-reduced-motion block near the top of this file already collapses the
+ * animation duration, but that leaves the gradient frozen mid-sweep at whatever
+ * position it happened to stop, which looks like a rendering fault. An explicit
+ * flat background is the honest still frame.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .mp-skeleton {
+    background: var(--mp-surface-sunken);
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Forms / wizard
+   ========================================================================== */
+.mp-form-field label {
+  font-weight: 600;
+  color: var(--mp-ink);
+  font-size: 0.88rem;
+  margin-bottom: 0.35rem;
+}
+.mp-form-field .form-control,
+.mp-form-field .form-select {
+  border-radius: var(--mp-radius-sm);
+  border-color: var(--mp-border);
+  padding: 0.6rem 0.85rem;
+}
+.mp-form-field .form-control:focus,
+.mp-form-field .form-select:focus {
+  border-color: var(--mp-primary);
+  box-shadow: 0 0 0 3px var(--mp-primary-light);
+}
+
+.mp-wizard-steps {
+  display: flex;
+  gap: var(--mp-space-2);
+  margin-bottom: var(--mp-space-6);
+  overflow-x: auto;
+}
+.mp-wizard-step {
+  flex: 1;
+  min-width: 90px;
+  text-align: center;
+  padding-bottom: 0.6rem;
+  border-bottom: 3px solid var(--mp-border);
+  color: var(--mp-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.mp-wizard-step.is-active { color: var(--mp-primary); border-color: var(--mp-primary); }
+.mp-wizard-step.is-complete { color: var(--mp-ink); border-color: var(--mp-primary); }
+
+/* ==========================================================================
+   Sticky mobile CTA
+   ========================================================================== */
+.mp-sticky-cta {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--mp-surface);
+  border-top: 1px solid var(--mp-border);
+  box-shadow: 0 -4px 16px rgba(20, 32, 30, 0.08);
+  padding: var(--mp-space-3) var(--mp-space-4);
+  display: none;
+  gap: var(--mp-space-2);
+  z-index: 50;
+}
+@media (max-width: 767px) {
+  .mp-sticky-cta { display: flex; }
+  body { padding-bottom: 76px; }
+}
+
+/* ==========================================================================
+   Image gallery
+   ========================================================================== */
+.mp-gallery-main {
+  border-radius: var(--mp-radius-md);
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--mp-surface-muted);
+}
+.mp-gallery-main img { width: 100%; height: 100%; object-fit: cover; }
+.mp-gallery-thumbs { display: flex; gap: 0.5rem; margin-top: 0.5rem; overflow-x: auto; }
+.mp-gallery-thumbs img {
+  width: 72px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--mp-radius-sm);
+  cursor: pointer;
+  border: 2px solid transparent;
+  opacity: 0.75;
+}
+.mp-gallery-thumbs img.is-active { border-color: var(--mp-primary); opacity: 1; }
+
+/* ==========================================================================
+   Navbar
+   ========================================================================== */
+.mp-navbar {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: saturate(150%) blur(14px);
+  border-bottom: 1px solid transparent;
+  min-height: var(--mp-navbar-height);
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  transition: box-shadow var(--mp-duration) var(--mp-ease), border-color var(--mp-duration) var(--mp-ease),
+    background var(--mp-duration) var(--mp-ease);
+}
+/* Elevation appears only once the page has scrolled, so the header sits flush
+   against the hero at rest instead of drawing a line across it. */
+.mp-navbar.is-scrolled {
+  border-bottom-color: var(--mp-border);
+  box-shadow: var(--mp-shadow-sm);
+  background: rgba(255, 255, 255, 0.95);
+}
+.mp-navbar__brand {
+  font-family: var(--mp-font-display);
+  font-weight: var(--mp-weight-bold);
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+  color: var(--mp-ink) !important;
+  display: inline-flex;
+  align-items: center;
+  /* Separates the mark from the wordmark only. Both halves of the word now live
+     inside .mp-navbar__wordmark, so this gap can never fall between them. */
+  gap: 0.5rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/*
+ * The wordmark is one box.
+ *
+ * It used to be two bare children of .mp-navbar__brand, so the flex `gap` above
+ * landed between them and the brand read "Trade mint" — an 8px hole in the middle
+ * of the company name, on every page.
+ *
+ * The old `.mp-navbar__brand span` selector also caught the logo mark, which is why
+ * the accent colour is now scoped to an explicit class instead of any child span.
+ */
+.mp-navbar__wordmark { display: inline-flex; }
+.mp-navbar__wordmark-accent { color: var(--mp-accent); }
+
+.mp-navbar__mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  /* Indigo, not the near-black primary gradient. On a white navbar the old
+     gradient rendered as a flat black square, which read as a missing image. */
+  background: var(--mp-gradient-accent);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-family: var(--mp-font-sans);
+  font-size: 0.95rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: var(--mp-shadow-sm);
+}
+
+/*
+ * The right-hand cluster.
+ *
+ * flex-shrink: 0 is the load-bearing declaration. The search field between the nav
+ * and this cluster uses flex-grow, and without an explicit no-shrink here the
+ * cluster was compressed until the buttons wrapped.
+ */
+.mp-navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-2);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Desktop nav links, with an underline that grows from the centre. */
+.mp-navbar__link {
+  position: relative;
+  color: var(--mp-body);
+  font-weight: var(--mp-weight-medium);
+  font-size: var(--mp-text-sm);
+  padding: 0.35rem 0;
+  /*
+   * The fix for the two-line links in the screenshot.
+   *
+   * "Find suppliers", "Browse listings" and "How it works" were each breaking
+   * across two lines once the search field claimed the spare width. A nav label is
+   * a single unit; it must never wrap, and if there is no room the row should be
+   * rebalanced instead.
+   */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mp-navbar__link::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--mp-primary);
+  transition: left var(--mp-duration) var(--mp-ease-out), right var(--mp-duration) var(--mp-ease-out);
+}
+.mp-navbar__link:hover,
+.mp-navbar__link.is-active { color: var(--mp-ink); }
+.mp-navbar__link:hover::after,
+.mp-navbar__link.is-active::after { left: 0; right: 0; }
+/* The underline is the accent, matching every other "this is the current thing"
+   signal in the app (sidebar active state, focus ring). */
+.mp-navbar__link::after { background: var(--mp-accent); }
+
+.mp-navbar__toggle {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--mp-radius-sm);
+  border: 1.5px solid var(--mp-border-strong);
+  background: var(--mp-surface);
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  padding: 0;
+}
+.mp-navbar__toggle span {
+  display: block;
+  width: 17px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--mp-ink);
+}
+
+/* Avatar chip for the signed-in user. Initial only — no image uploads exist. */
+.mp-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--mp-primary-light);
+  color: var(--mp-primary-dark);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+/* ---- Mobile nav sheet ---- */
+.mp-navsheet {
+  position: fixed;
+  inset: var(--mp-navbar-height) 0 auto 0;
+  background: var(--mp-surface);
+  border-bottom: 1px solid var(--mp-border);
+  box-shadow: var(--mp-shadow-lg);
+  padding: var(--mp-space-4) var(--mp-space-5) var(--mp-space-5);
+  z-index: 44;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mp-space-2);
+  max-height: calc(100vh - var(--mp-navbar-height));
+  overflow-y: auto;
+  animation: mp-slide-down var(--mp-duration) var(--mp-ease-out);
+}
+.mp-navsheet a,
+.mp-navsheet button {
+  text-align: left;
+  font-weight: 650;
+  color: var(--mp-ink);
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--mp-radius-sm);
+  border: none;
+  background: transparent;
+}
+.mp-navsheet a:hover,
+.mp-navsheet button:hover { background: var(--mp-surface-muted); color: var(--mp-primary-dark); }
+
+@keyframes mp-slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.mp-footer {
+  background: var(--mp-ink);
+  color: rgba(255, 255, 255, 0.7);
+  padding: var(--mp-space-8) 0 var(--mp-space-5);
+  margin-top: var(--mp-space-8);
+}
+.mp-footer h3 {
+  color: #fff;
+  font-family: var(--mp-font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--mp-space-3);
+}
+.mp-footer a { color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; display: block; padding: 0.28rem 0; }
+.mp-footer a:hover { color: #fff; }
+.mp-footer__brand {
+  font-family: var(--mp-font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.03em;
+}
+.mp-footer__bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  margin-top: var(--mp-space-6);
+  padding-top: var(--mp-space-4);
+  font-size: 0.83rem;
+}
+
+/* Dashboard */
+.mp-stat-card {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  padding: var(--mp-space-5);
+}
+.mp-stat-card__value { font-family: var(--mp-font-display); font-size: 2rem; font-weight: 700; color: var(--mp-ink); }
+.mp-stat-card__label { color: var(--mp-muted); font-size: 0.85rem; font-weight: 600; }
+
+/*
+ * Sidebar shell. The link styling that used to live here has moved to
+ * .mp-sidebar__link in the grouped-sidebar section further down this file.
+ *
+ * The old rules were a bare `.mp-sidebar a { display: block }`, and they had to go
+ * rather than simply be left unused: `.mp-sidebar a` has higher specificity
+ * (0,1,1) than `.mp-sidebar__link` (0,1,0), so they silently won the cascade and
+ * forced the new links back to `display: block` — collapsing the icon, label and
+ * count row. Element selectors scoped under a class are exactly the kind of rule
+ * that outranks the component class meant to replace it.
+ */
+.mp-sidebar {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  padding: var(--mp-space-4) var(--mp-space-3);
+}
+
+/* ==========================================================================
+   Modal — shared overlay + card, used by enquiry, rejection, and any
+   future dialog so they all look and animate the same way.
+   ========================================================================== */
+.mp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 32, 30, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mp-space-4);
+  z-index: 80;
+  animation: mp-fade-in 0.15s ease;
+}
+.mp-modal-card {
+  background: var(--mp-surface);
+  border-radius: var(--mp-radius-lg);
+  box-shadow: var(--mp-shadow-lg);
+  padding: var(--mp-space-5);
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: mp-pop-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.mp-modal-close {
+  position: absolute;
+  top: var(--mp-space-3);
+  right: var(--mp-space-3);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--mp-surface-muted);
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.mp-modal-close:hover { background: var(--mp-border); color: var(--mp-ink); }
+
+@keyframes mp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes mp-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Enquiry modal specifics */
+.mp-enquiry-modal__header { padding-right: var(--mp-space-5); }
+.mp-enquiry-success {
+  text-align: center;
+  padding: var(--mp-space-4) 0 var(--mp-space-2);
+}
+.mp-enquiry-success__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--mp-status-published-bg);
+  color: var(--mp-status-published-fg);
+  font-size: 1.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--mp-space-4);
+  animation: mp-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ==========================================================================
+   Leads / CRM inbox
+   ========================================================================== */
+.mp-lead-status-tabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.mp-lead-status-tab {
+  border: 1.5px solid var(--mp-border);
+  background: var(--mp-surface);
+  border-radius: var(--mp-radius-pill);
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--mp-body);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.mp-lead-status-tab:hover { border-color: var(--mp-primary); }
+.mp-lead-status-tab.is-active {
+  background: var(--mp-primary);
+  border-color: var(--mp-primary);
+  color: #fff;
+}
+.mp-lead-status-tab__count {
+  background: rgba(20, 32, 30, 0.08);
+  border-radius: var(--mp-radius-pill);
+  padding: 0.05rem 0.45rem;
+  font-size: 0.75rem;
+}
+.mp-lead-status-tab.is-active .mp-lead-status-tab__count { background: rgba(255, 255, 255, 0.25); }
+
+.mp-lead-card {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-left: 4px solid var(--mp-primary);
+  border-radius: var(--mp-radius-md);
+  padding: var(--mp-space-4);
+  transition: box-shadow 0.15s ease;
+}
+.mp-lead-card:hover { box-shadow: var(--mp-shadow-sm); }
+.mp-lead-card.status-contacted { border-left-color: var(--mp-status-pending-fg); }
+.mp-lead-card.status-converted { border-left-color: var(--mp-status-published-fg); }
+.mp-lead-card.status-lost { border-left-color: var(--mp-status-archived-fg); opacity: 0.75; }
+
+.mp-lead-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--mp-primary-light);
+  color: var(--mp-primary-dark);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Matching engine (Phase 4)
+   ========================================================================== */
+
+/* Requirement lifecycle statuses. StatusBadge already knew these labels;
+   these are the colors that were missing, now that matching makes them
+   states a user actually sees. */
+.mp-status-matching { background: var(--mp-primary-light); color: var(--mp-primary-dark); }
+.mp-status-receiving_quotes { background: var(--mp-status-rented-bg); color: var(--mp-status-rented-fg); }
+.mp-status-closed { background: var(--mp-status-archived-bg); color: var(--mp-status-archived-fg); }
+.mp-status-cancelled { background: var(--mp-status-rejected-bg); color: var(--mp-status-rejected-fg); }
+.mp-status-accepted { background: var(--mp-status-published-bg); color: var(--mp-status-published-fg); }
+.mp-status-declined { background: var(--mp-status-archived-bg); color: var(--mp-status-archived-fg); }
+.mp-status-pending { background: var(--mp-status-pending-bg); color: var(--mp-status-pending-fg); }
+
+/* The match percentage. Color is a deliberate three-step scale rather than a
+   gradient, so "strong / good / partial fit" reads at a glance. */
+.mp-match-score {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1;
+  border: 2px solid currentColor;
+  background: var(--mp-surface);
+}
+.mp-match-score__value { font-size: 1.05rem; }
+.mp-match-score__unit { font-size: 0.6rem; font-weight: 600; opacity: 0.8; }
+.mp-match-score.is-strong { color: var(--mp-status-published-fg); background: var(--mp-status-published-bg); }
+.mp-match-score.is-good { color: var(--mp-primary-dark); background: var(--mp-primary-light); }
+.mp-match-score.is-partial { color: var(--mp-status-pending-fg); background: var(--mp-status-pending-bg); }
+.mp-match-score--sm { width: 44px; height: 44px; }
+.mp-match-score--sm .mp-match-score__value { font-size: 0.85rem; }
+
+.mp-match-card {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-left: 4px solid var(--mp-primary);
+  border-radius: var(--mp-radius-md);
+  padding: var(--mp-space-4);
+  transition: box-shadow 0.15s ease;
+}
+.mp-match-card:hover { box-shadow: var(--mp-shadow-sm); }
+.mp-match-card.status-accepted { border-left-color: var(--mp-status-published-fg); }
+.mp-match-card.status-declined { border-left-color: var(--mp-status-archived-fg); opacity: 0.75; }
+
+/* "Why matched" list — reasons come straight from the engine's stored
+   explanation, so they're rendered as plain text, never HTML. */
+.mp-match-reasons { list-style: none; margin: 0; padding: 0; }
+.mp-match-reasons li {
+  position: relative;
+  padding-left: 1.15rem;
+  font-size: 0.85rem;
+  color: var(--mp-body);
+  margin-bottom: 0.2rem;
+}
+.mp-match-reasons li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--mp-primary);
+  font-weight: 700;
+}
+
+.mp-match-capability {
+  display: inline-block;
+  background: var(--mp-surface-muted);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-pill);
+  padding: 0.1rem 0.6rem;
+  font-size: 0.75rem;
+  color: var(--mp-body);
+  margin: 0 0.25rem 0.25rem 0;
+}
+
+/* Per-dimension breakdown bar, shown when a user expands a match. */
+.mp-match-breakdown { display: grid; gap: 0.35rem; }
+.mp-match-breakdown__row { display: grid; grid-template-columns: 7.5rem 1fr auto; gap: 0.5rem; align-items: center; font-size: 0.8rem; }
+.mp-match-breakdown__label { color: var(--mp-muted); font-weight: 600; text-transform: capitalize; }
+.mp-match-breakdown__track { background: var(--mp-surface-muted); border-radius: var(--mp-radius-pill); height: 7px; overflow: hidden; }
+.mp-match-breakdown__fill { background: var(--mp-primary); height: 100%; border-radius: var(--mp-radius-pill); }
+.mp-match-breakdown__value { color: var(--mp-body); font-variant-numeric: tabular-nums; }
+
+/* ==========================================================================
+   Enquiry + quotation engine (Phase 5)
+   ========================================================================== */
+
+/* Enquiry and quote statuses reuse the existing status-badge system so the
+   whole app speaks one visual language. */
+.mp-status-declined,
+.mp-status-withdrawn { background: var(--mp-status-archived-bg); color: var(--mp-status-archived-fg); }
+.mp-status-sent { background: var(--mp-status-rented-bg); color: var(--mp-status-rented-fg); }
+.mp-status-viewed { background: var(--mp-primary-light); color: var(--mp-primary-dark); }
+.mp-status-expired { background: var(--mp-status-archived-bg); color: var(--mp-status-archived-fg); }
+.mp-status-rejected { background: var(--mp-status-rejected-bg); color: var(--mp-status-rejected-fg); }
+
+/* One editable line in the quote builder. */
+.mp-quote-line {
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-sm);
+  padding: var(--mp-space-3);
+  background: var(--mp-surface);
+}
+.mp-quote-line:hover { border-color: var(--mp-primary-light); }
+
+/* The quote document itself, shared by the builder preview and both parties'
+   detail pages. */
+.mp-quote-doc { color: var(--mp-body); }
+.mp-quote-doc .mp-eyebrow { margin-bottom: 0.2rem; }
+
+.mp-quote-table thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mp-muted);
+  border-bottom: 2px solid var(--mp-border);
+}
+.mp-quote-table tbody td { border-bottom: 1px solid var(--mp-border); }
+
+/* Totals block: definition list rows that line up like an invoice. */
+.mp-quote-totals { margin: 0; }
+.mp-quote-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mp-space-4);
+  padding: 0.3rem 0;
+}
+.mp-quote-totals dt { font-weight: 500; color: var(--mp-muted); }
+.mp-quote-totals dd { margin: 0; font-variant-numeric: tabular-nums; }
+.mp-quote-totals__grand {
+  border-top: 2px solid var(--mp-border);
+  margin-top: 0.35rem;
+  padding-top: 0.5rem !important;
+  font-size: 1.05rem;
+}
+.mp-quote-totals__grand dt { color: var(--mp-ink); font-weight: 700; }
+.mp-quote-totals__grand dd { font-weight: 700; color: var(--mp-primary-dark); }
+
+/* On a phone the quote table would otherwise force a horizontal scroll on the
+   whole page; keep it contained. */
+@media (max-width: 575.98px) {
+  .mp-quote-doc .table-responsive { -webkit-overflow-scrolling: touch; }
+  .mp-quote-totals > div { padding: 0.25rem 0; }
+}
+
+/* ==========================================================================
+   Negotiation + responsive navigation (Phase 6)
+   ========================================================================== */
+
+/* Negotiation and revision statuses, reusing the existing badge system. */
+.mp-status-countered { background: var(--mp-status-pending-bg); color: var(--mp-status-pending-fg); }
+.mp-status-negotiating { background: var(--mp-status-pending-bg); color: var(--mp-status-pending-fg); }
+.mp-status-open { background: var(--mp-primary-light); color: var(--mp-primary-dark); }
+
+/* A card that is waiting on the current user gets a structural cue (border +
+   badge text), not just a colour change. */
+.mp-match-card.is-awaiting-me { border-left-color: var(--mp-accent); box-shadow: var(--mp-shadow-sm); }
+
+/* ---- Negotiation timeline ---- */
+.mp-timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+.mp-timeline__item {
+  position: relative;
+  padding-left: 2.1rem;
+  padding-bottom: var(--mp-space-4);
+}
+/* The connecting line, drawn behind the markers. */
+.mp-timeline__item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 0.72rem;
+  top: 1.5rem;
+  bottom: 0;
+  width: 2px;
+  background: var(--mp-border);
+}
+.mp-timeline__marker {
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--mp-surface-muted);
+  border: 1px solid var(--mp-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--mp-body);
+}
+.mp-timeline__item.is-mine .mp-timeline__marker {
+  background: var(--mp-primary-light);
+  border-color: var(--mp-primary);
+  color: var(--mp-primary-dark);
+}
+.mp-timeline__body { min-width: 0; }
+
+/* Counter offer before/after summary. */
+.mp-counter-summary {
+  background: var(--mp-surface-muted);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-sm);
+}
+
+/* ---- Comparison table ---- */
+.mp-compare-table th[scope='col'] {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mp-muted);
+  white-space: nowrap;
+}
+.mp-compare-table td, .mp-compare-table th[scope='row'] { vertical-align: top; }
+.mp-compare-table tbody tr:hover { background: var(--mp-surface-muted); }
+
+/* ---- Mobile navigation drawer ----
+   Below lg the sidebar becomes an off-canvas panel. This is a different layout,
+   not a squeezed desktop one: full-height, thumb-reachable, and it traps focus
+   while open (see DashboardLayout). */
+.mp-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 32, 30, 0.45);
+  z-index: 1040;
+}
+.mp-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(84vw, 320px);
+  background: var(--mp-surface);
+  border-right: 1px solid var(--mp-border);
+  box-shadow: var(--mp-shadow-lg);
+  padding: var(--mp-space-4);
+  z-index: 1050;
+  overflow-y: auto;
+  /* Respect the iOS home indicator / notch. */
+  padding-bottom: calc(var(--mp-space-6) + env(safe-area-inset-bottom, 0px));
+}
+.mp-drawer:focus { outline: none; }
+.mp-drawer .mp-sidebar { border: 0; padding: 0; box-shadow: none; }
+
+/*
+ * Tap targets on touch layouts.
+ *
+ * Retargeted from `.mp-sidebar a` to the component class. The old selector still
+ * matched (element under class beats a bare class), so leaving it would have kept
+ * quietly overriding the new link padding.
+ *
+ * `min-height` rather than padding alone: the grouped links are a flex row of a
+ * 16px icon and 14px text, which lands around 36px on its own — under the 44px
+ * minimum comfortable touch target, and the drawer is the only way to navigate on
+ * a phone.
+ */
+@media (max-width: 991.98px) {
+  .mp-sidebar__link {
+    min-height: 44px;
+    padding-top: var(--mp-space-3);
+    padding-bottom: var(--mp-space-3);
+  }
+  .btn-sm { min-height: 38px; }
+}
+
+/* Truncation helper used by dashboard rows. */
+.min-width-0 { min-width: 0; }
+.min-width-0 > * { overflow-wrap: anywhere; }
+
+/* Reduced-motion is handled once in the Base section at the top of this file,
+   including the scroll-behavior reset that a bare transition override misses. */
+
+/* ==========================================================================
+   Phases 7–10 — order, payment, trust and dispute states.
+
+   Every one of these reuses an existing status token rather than introducing a
+   new colour, so the palette stays finite and the app keeps speaking one visual
+   language. Colour is never the only signal: each badge also carries its label
+   as text, so the meaning survives colour-blindness and monochrome printing.
+   ========================================================================== */
+
+/* ---- Order lifecycle ---- */
+.mp-status-confirmed { background: var(--mp-status-rented-bg); color: var(--mp-status-rented-fg); }
+.mp-status-processing,
+.mp-status-in_progress { background: var(--mp-primary-light); color: var(--mp-primary-dark); }
+.mp-status-ready,
+.mp-status-dispatched { background: var(--mp-status-pending-bg); color: var(--mp-status-pending-fg); }
+.mp-status-delivered { background: var(--mp-status-rented-bg); color: var(--mp-status-rented-fg); }
+.mp-status-completed { background: var(--mp-status-published-bg); color: var(--mp-status-published-fg); }
+/* Disputed is the one state that must interrupt the reader. */
+.mp-status-disputed { background: var(--mp-status-rejected-bg); color: var(--mp-status-rejected-fg); }
+
+/* ---- Payment position ---- */
+.mp-status-unpaid { background: var(--mp-status-draft-bg); color: var(--mp-status-draft-fg); }
+.mp-status-initiated { background: var(--mp-status-pending-bg); color: var(--mp-status-pending-fg); }
+.mp-status-partially_paid { background: var(--mp-status-pending-bg); color: var(--mp-status-pending-fg); }
+.mp-status-paid { background: var(--mp-status-published-bg); color: var(--mp-status-published-fg); }
+.mp-status-failed { background: var(--mp-status-rejected-bg); color: var(--mp-status-rejected-fg); }
+.mp-status-refunded,
+.mp-status-partially_refunded { background: var(--mp-status-sold-bg); color: var(--mp-status-sold-fg); }
+
+/* ---- Verification, reviews, documents ---- */
+.mp-status-unverified { background: var(--mp-status-draft-bg); color: var(--mp-status-draft-fg); }
+.mp-status-verified,
+.mp-status-approved { background: var(--mp-status-published-bg); color: var(--mp-status-published-fg); }
+.mp-status-suspended { background: var(--mp-status-rejected-bg); color: var(--mp-status-rejected-fg); }
+.mp-status-hidden { background: var(--mp-status-archived-bg); color: var(--mp-status-archived-fg); }
+.mp-status-flagged { background: var(--mp-status-pending-bg); color: var(--mp-status-pending-fg); }
+
+/* ---- Dispute lifecycle ---- */
+.mp-status-under_review { background: var(--mp-status-pending-bg); color: var(--mp-status-pending-fg); }
+.mp-status-resolved { background: var(--mp-status-published-bg); color: var(--mp-status-published-fg); }
+
+/* Dispute cards inherit the left-border cue the match/lead cards use. */
+.mp-match-card.status-open,
+.mp-match-card.status-under_review { border-left-color: var(--mp-status-pending-fg); }
+.mp-match-card.status-resolved { border-left-color: var(--mp-status-published-fg); }
+.mp-match-card.status-disputed { border-left-color: var(--mp-status-rejected-fg); }
+
+/* ==========================================================================
+   Stars — used for both input and display (see StarRating)
+   ========================================================================== */
+.mp-stars { color: var(--mp-border); letter-spacing: 0.05em; white-space: nowrap; }
+.mp-stars .is-on { color: var(--mp-accent); }
+
+.mp-stars-input { display: inline-flex; gap: 2px; }
+.mp-stars-input__star {
+  cursor: pointer;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--mp-border);
+  transition: color 0.12s ease, transform 0.1s ease;
+}
+.mp-stars-input__star.is-on { color: var(--mp-accent); }
+.mp-stars-input__star:hover { transform: scale(1.08); }
+/* Keyboard focus must be visible on the star itself, not just the hidden input. */
+.mp-stars-input__star:focus-within {
+  outline: 2px solid var(--mp-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   Business Passport (Phase 9)
+   ========================================================================== */
+.mp-trust-score {
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mp-font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: var(--mp-primary-light);
+  color: var(--mp-primary-dark);
+}
+
+.mp-trust-factor { padding: var(--mp-space-2) 0; border-top: 1px solid var(--mp-border); }
+.mp-trust-factor:first-child { border-top: 0; }
+.mp-trust-factor__bar,
+.mp-rating-bar {
+  height: 5px;
+  margin-top: 4px;
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-surface-muted);
+  overflow: hidden;
+}
+.mp-trust-factor__bar > span,
+.mp-rating-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-primary);
+}
+.mp-rating-bar > span { background: var(--mp-accent); }
+
+/* A stat card that represents a queue with work in it. Border + weight, not
+   colour alone, so it still reads as "urgent" without colour perception. */
+.mp-stat-card.is-attention {
+  border-color: var(--mp-accent);
+  box-shadow: inset 3px 0 0 var(--mp-accent);
+}
+.mp-stat-card.is-attention .mp-stat-card__value { color: var(--mp-accent-dark); }
+a:hover > .mp-stat-card { border-color: var(--mp-primary); }
+
+/* ==========================================================================
+   Landing page components
+
+   These exist only on the marketing surface. Everything here is presentational:
+   no figure rendered by these classes is computed in the browser — the counts,
+   ratings and category lists all come from the API, so the page is honest about
+   an empty marketplace rather than padded with invented numbers.
+   ========================================================================== */
+
+/* ---- How it works ---- */
+.mp-step {
+  position: relative;
+  height: 100%;
+  padding: var(--mp-space-5);
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  box-shadow: var(--mp-shadow-xs);
+}
+.mp-step__number {
+  font-family: var(--mp-font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--mp-primary);
+  color: #fff;
+  margin-bottom: var(--mp-space-3);
+}
+.mp-step h3 { font-size: 1.05rem; margin-bottom: 0.4rem; }
+.mp-step p { color: var(--mp-muted); font-size: 0.9rem; margin: 0; }
+
+/* Connector line between steps, desktop only. Decorative, hence aria-hidden in
+   the markup and hidden entirely when the steps stack. */
+.mp-step__connector {
+  position: absolute;
+  top: 42px;
+  right: calc(-1 * var(--mp-space-4) - 2px);
+  width: var(--mp-space-4);
+  height: 2px;
+  background: var(--mp-border-strong);
+}
+@media (max-width: 991.98px) {
+  .mp-step__connector { display: none; }
+}
+
+/* ---- Feature / trust card ---- */
+.mp-feature {
+  height: 100%;
+  padding: var(--mp-space-5);
+  border-radius: var(--mp-radius-md);
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  transition: box-shadow var(--mp-duration) var(--mp-ease), transform var(--mp-duration) var(--mp-ease);
+}
+.mp-feature:hover { box-shadow: var(--mp-shadow-md); transform: translateY(-2px); }
+.mp-feature__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--mp-radius-sm);
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+  background: var(--mp-primary-soft);
+  margin-bottom: var(--mp-space-3);
+}
+.mp-feature h3 { font-size: 1rem; margin-bottom: 0.35rem; }
+.mp-feature p { color: var(--mp-muted); font-size: 0.89rem; margin: 0; }
+
+/* ---- Supplier card ---- */
+.mp-supplier-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mp-space-2);
+  padding: var(--mp-space-5);
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  box-shadow: var(--mp-shadow-xs);
+  transition: box-shadow var(--mp-duration) var(--mp-ease), transform var(--mp-duration) var(--mp-ease),
+    border-color var(--mp-duration) var(--mp-ease);
+}
+.mp-supplier-card:hover {
+  box-shadow: var(--mp-shadow-md);
+  transform: translateY(-3px);
+  border-color: var(--mp-border-strong);
+}
+.mp-supplier-card__logo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--mp-radius-sm);
+  object-fit: cover;
+  background: var(--mp-primary-soft);
+  color: var(--mp-primary-dark);
+  display: grid;
+  place-items: center;
+  font-family: var(--mp-font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.mp-supplier-card__name {
+  font-weight: 700;
+  color: var(--mp-ink);
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+.mp-supplier-card__meta { color: var(--mp-muted); font-size: 0.84rem; }
+.mp-supplier-card__stats {
+  display: flex;
+  gap: var(--mp-space-4);
+  border-top: 1px solid var(--mp-border);
+  padding-top: var(--mp-space-3);
+  margin-top: auto;
+  font-size: 0.82rem;
+  color: var(--mp-muted);
+}
+.mp-supplier-card__stats b { color: var(--mp-ink); font-weight: 700; }
+
+/* ---- Split CTA band ----
+   Two audiences, two panels, no ambiguity about which button is for whom. */
+.mp-cta-split {
+  border-radius: var(--mp-radius-lg);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  box-shadow: var(--mp-shadow-lg);
+}
+@media (max-width: 767.98px) {
+  .mp-cta-split { grid-template-columns: 1fr; }
+}
+.mp-cta-split__panel { padding: var(--mp-space-7) var(--mp-space-6); }
+.mp-cta-split__panel--customer {
+  background: var(--mp-gradient-hero);
+  background-color: var(--mp-primary-dark);
+  color: #fff;
+}
+.mp-cta-split__panel--customer h2 { color: #fff; }
+.mp-cta-split__panel--customer p { color: rgba(255, 255, 255, 0.78); }
+.mp-cta-split__panel--business { background: var(--mp-surface); }
+.mp-cta-split__panel--business p { color: var(--mp-muted); }
+.mp-cta-split h2 { font-size: var(--mp-text-h3); margin-bottom: 0.5rem; }
+
+/* Checklist inside the CTA panels. */
+.mp-checklist { list-style: none; padding: 0; margin: 0 0 var(--mp-space-5); font-size: 0.9rem; }
+.mp-checklist li { display: flex; gap: 0.55rem; padding: 0.25rem 0; }
+.mp-checklist li::before { content: '✓'; font-weight: 800; color: var(--mp-accent); flex-shrink: 0; }
+.mp-cta-split__panel--business .mp-checklist li::before { color: var(--mp-primary); }
+
+/* ---- Logo/trust strip ---- */
+.mp-trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mp-space-3) var(--mp-space-5);
+  align-items: center;
+  justify-content: center;
+  color: var(--mp-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.mp-trust-strip span { display: inline-flex; align-items: center; gap: 0.4rem; }
+/* SVG icons in the strip need optical alignment; a 1em glyph sits slightly high
+   against the cap height of the label beside it. */
+.mp-trust-strip svg { flex: 0 0 auto; opacity: 0.75; }
+
+/* ==========================================================================
+   Numbered rail — the "how it works" sequence
+
+   An ordered list with a connecting line, not four cards. The steps happen in
+   order, and a card grid communicates "four independent things" where a rail
+   communicates "then this". The line is drawn on the <ol> rather than per item so
+   it cannot leave a stub below the final step.
+   ========================================================================== */
+.mp-rail {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 var(--mp-space-7);
+  counter-reset: mp-rail;
+}
+.mp-rail::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 12px;
+  /* Stops at the last marker instead of running to the container edge. */
+  bottom: 12px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--mp-border-strong), var(--mp-border) 85%, transparent);
+}
+.mp-rail__item {
+  position: relative;
+  counter-increment: mp-rail;
+  padding-bottom: var(--mp-space-6);
+}
+.mp-rail__item:last-child { padding-bottom: 0; }
+.mp-rail__item::before {
+  content: counter(mp-rail);
+  position: absolute;
+  left: calc(-1 * var(--mp-space-7));
+  top: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-surface);
+  border: 2px solid var(--mp-accent);
+  color: var(--mp-accent-dark);
+  font-size: var(--mp-text-sm);
+  font-weight: var(--mp-weight-bold);
+  display: grid;
+  place-items: center;
+  font-variant-numeric: tabular-nums;
+}
+.mp-rail__item h3 {
+  font-size: var(--mp-text-h4);
+  margin-bottom: var(--mp-space-2);
+  padding-top: 4px;
+}
+.mp-rail__item p { color: var(--mp-muted); margin: 0; max-width: 42rem; }
+
+/* Keeps a section heading beside a long list while the list scrolls. Only above
+   lg, where there is a second column for it to be sticky against. */
+.mp-sticky-aside { position: static; }
+@media (min-width: 992px) {
+  .mp-sticky-aside {
+    position: sticky;
+    top: calc(var(--mp-navbar-height) + var(--mp-space-6));
+  }
+}
+
+/* ==========================================================================
+   Trust list — two columns of icon + text
+
+   Not six bordered cards. These are claims to be read once, not products to be
+   compared, and wrapping each sentence in a card adds a border, a radius, a
+   shadow and 32px of padding to deliver one line of copy.
+   ========================================================================== */
+.mp-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: var(--mp-space-6) var(--mp-space-7);
+}
+.mp-trust-item { display: flex; gap: var(--mp-space-4); align-items: flex-start; }
+.mp-trust-item__icon {
+  flex: 0 0 40px;
+  height: 40px;
+  border-radius: var(--mp-radius-md);
+  background: var(--mp-accent-light);
+  color: var(--mp-accent-dark);
+  display: grid;
+  place-items: center;
+}
+.mp-trust-item h3 { font-size: var(--mp-text-body); margin-bottom: var(--mp-space-1); }
+.mp-trust-item p { color: var(--mp-muted); font-size: var(--mp-text-sm); margin: 0; }
+
+/* ---- Location chip ---- */
+.mp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--mp-radius-pill);
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface);
+  color: var(--mp-ink);
+  font-size: 0.87rem;
+  font-weight: 600;
+  transition: border-color var(--mp-duration-fast) var(--mp-ease), color var(--mp-duration-fast) var(--mp-ease),
+    background var(--mp-duration-fast) var(--mp-ease);
+}
+.mp-chip:hover { border-color: var(--mp-primary); color: var(--mp-primary-dark); background: var(--mp-primary-soft); }
+.mp-chip__count { color: var(--mp-muted); font-weight: 600; font-size: 0.8rem; }
+
+/* ---- Scroll reveal ----
+   Progressive enhancement: the base state is fully visible, and the animation is
+   only armed once JS adds `is-armed`. No JS (or a crawler) means no blank page.
+   Fully disabled under prefers-reduced-motion by the global rule at the bottom. */
+.mp-reveal.is-armed {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.mp-reveal.is-armed.is-visible {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--mp-duration-slow) var(--mp-ease-out), transform var(--mp-duration-slow) var(--mp-ease-out);
+}
+
+/* ==========================================================================
+   Auth screens — split layout: form on the left, proof on the right
+
+   WHY A SPLIT AND NOT A CENTRED CARD
+   ----------------------------------
+   Signing up is the point at which a visitor has the least reason to trust the
+   product and the most reason to leave. A lone form on an empty field answers
+   none of the questions they are actually asking — who else is here, what
+   happens after I submit, is my data safe.
+
+   The right panel answers those while the form stays the focus. On a marketplace
+   the asymmetry matters more than on most products, because a buyer is being
+   asked to describe what their business needs to strangers.
+
+   The panel is decoration-free: real counts, the actual process, and a concrete
+   security statement. Stock photography and invented testimonials would occupy
+   the same space and earn none of the same trust.
+   ========================================================================== */
+.mp-auth {
+  min-height: calc(100vh - var(--mp-navbar-height));
+  display: grid;
+  /* Form column is fixed-ish, proof column takes the slack. Below lg the proof
+     column is dropped entirely rather than stacked — see the query below. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--mp-surface);
+}
+
+.mp-auth__form-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--mp-space-8) var(--mp-gutter);
+}
+
+.mp-auth__form {
+  width: 100%;
+  max-width: 25rem;
+  margin: 0 auto;
+}
+
+.mp-auth__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mp-space-2);
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  letter-spacing: var(--mp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--mp-accent-dark);
+  background: var(--mp-accent-light);
+  border-radius: var(--mp-radius-pill);
+  padding: var(--mp-space-1) var(--mp-space-3);
+  margin-bottom: var(--mp-space-4);
+}
+
+.mp-auth__title {
+  font-size: var(--mp-text-h2);
+  letter-spacing: var(--mp-tracking-display);
+  margin-bottom: var(--mp-space-2);
+}
+
+.mp-auth__subtitle {
+  color: var(--mp-muted);
+  font-size: var(--mp-text-sm);
+  margin-bottom: var(--mp-space-6);
+}
+
+/* Role switch on the signup screens. A marketplace has two entirely different
+   sign-up intents, and burying one behind a text link at the bottom of the page
+   sends buyers into the seller flow and back out again. */
+.mp-auth__switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mp-space-2);
+  padding: var(--mp-space-1);
+  background: var(--mp-surface-sunken);
+  border-radius: var(--mp-radius-md);
+  margin-bottom: var(--mp-space-5);
+}
+.mp-auth__switch a {
+  text-align: center;
+  padding: var(--mp-space-3) var(--mp-space-2);
+  border-radius: var(--mp-radius-sm);
+  font-size: var(--mp-text-sm);
+  font-weight: var(--mp-weight-semibold);
+  color: var(--mp-muted);
+  transition: background var(--mp-duration) var(--mp-ease), color var(--mp-duration) var(--mp-ease);
+}
+.mp-auth__switch a:hover { color: var(--mp-ink); }
+.mp-auth__switch a.is-active {
+  background: var(--mp-surface);
+  color: var(--mp-ink);
+  box-shadow: var(--mp-shadow-sm);
+}
+.mp-auth__switch small {
+  display: block;
+  font-weight: var(--mp-weight-regular);
+  font-size: var(--mp-text-micro);
+  color: var(--mp-faint);
+  margin-top: 2px;
+}
+
+.mp-auth__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-3);
+  margin: var(--mp-space-5) 0;
+  color: var(--mp-faint);
+  font-size: var(--mp-text-micro);
+  text-transform: uppercase;
+  letter-spacing: var(--mp-tracking-caps);
+}
+.mp-auth__divider::before,
+.mp-auth__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--mp-border);
+}
+
+.mp-auth__foot {
+  margin-top: var(--mp-space-5);
+  font-size: var(--mp-text-sm);
+  color: var(--mp-muted);
+}
+
+/* --- Proof panel --- */
+.mp-auth__proof {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--mp-space-6);
+  padding: var(--mp-space-8) var(--mp-gutter);
+  background: var(--mp-gradient-hero);
+  color: #ffffff;
+  overflow: hidden;
+}
+/* A single hairline grid, very low contrast. Enough to stop a large flat navy
+   panel reading as an unstyled block, not enough to compete with the copy. */
+.mp-auth__proof::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(70% 60% at 50% 40%, #000 30%, transparent 100%);
+  pointer-events: none;
+}
+.mp-auth__proof > * { position: relative; }
+
+.mp-auth__proof-inner { max-width: 27rem; margin: 0 auto; width: 100%; }
+
+.mp-auth__quote {
+  font-size: var(--mp-text-h3);
+  line-height: var(--mp-leading-heading);
+  letter-spacing: var(--mp-tracking-heading);
+  font-weight: var(--mp-weight-semibold);
+  color: #ffffff;
+  margin-bottom: var(--mp-space-5);
+}
+
+.mp-auth__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--mp-space-4);
+  padding: var(--mp-space-5) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  margin-bottom: var(--mp-space-5);
+}
+.mp-auth__stat-value {
+  font-size: var(--mp-text-h3);
+  font-weight: var(--mp-weight-bold);
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.mp-auth__stat-label {
+  font-size: var(--mp-text-micro);
+  color: rgba(255, 255, 255, 0.66);
+  margin-top: 2px;
+}
+
+.mp-auth__steps { display: grid; gap: var(--mp-space-4); }
+.mp-auth__step { display: flex; gap: var(--mp-space-3); align-items: flex-start; }
+.mp-auth__step-num {
+  flex: 0 0 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--mp-radius-pill);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-bold);
+  display: grid;
+  place-items: center;
+}
+.mp-auth__step-text {
+  font-size: var(--mp-text-sm);
+  color: rgba(255, 255, 255, 0.82);
+  line-height: var(--mp-leading-body);
+}
+.mp-auth__step-text strong { color: #ffffff; display: block; font-weight: var(--mp-weight-semibold); }
+
+/*
+ * Below lg the proof panel is removed from the DOM flow entirely.
+ *
+ * Stacking it under the form would push the actual task below two screens of
+ * marketing on a phone, which is the most common way a responsive auth page gets
+ * worse on mobile than on desktop. A condensed trust strip is rendered inside the
+ * form column instead (see .mp-auth__trust-strip).
+ */
+@media (max-width: 991.98px) {
+  .mp-auth { grid-template-columns: 1fr; background: var(--mp-bg); }
+  .mp-auth__proof { display: none; }
+  .mp-auth__form-col { padding: var(--mp-space-6) var(--mp-gutter) var(--mp-space-8); }
+  .mp-auth__form {
+    background: var(--mp-surface);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius-lg);
+    box-shadow: var(--mp-shadow-sm);
+    padding: var(--mp-space-6);
+    max-width: 27rem;
+  }
+}
+@media (max-width: 575.98px) {
+  .mp-auth__form { padding: var(--mp-space-5); border-radius: var(--mp-radius-md); }
+  .mp-auth__switch { grid-template-columns: 1fr; }
+}
+
+.mp-auth__trust-strip {
+  display: none;
+  gap: var(--mp-space-4);
+  flex-wrap: wrap;
+  margin-top: var(--mp-space-5);
+  padding-top: var(--mp-space-4);
+  border-top: 1px solid var(--mp-border);
+  font-size: var(--mp-text-micro);
+  color: var(--mp-muted);
+}
+@media (max-width: 991.98px) {
+  .mp-auth__trust-strip { display: flex; }
+}
+
+/* Legacy card class, retained so any auth-adjacent screen still referencing it
+   keeps a sane appearance rather than rendering unstyled. */
+.mp-auth__card {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-lg);
+  box-shadow: var(--mp-shadow-sm);
+  padding: var(--mp-space-6);
+}
+
+/* --- Password visibility toggle --- */
+.mp-field-affix { position: relative; }
+.mp-field-affix .form-control { padding-right: 4.25rem; }
+.mp-field-affix__btn {
+  position: absolute;
+  top: 50%;
+  right: var(--mp-space-2);
+  transform: translateY(-50%);
+  background: none;
+  border: 0;
+  padding: var(--mp-space-1) var(--mp-space-2);
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  color: var(--mp-muted);
+  border-radius: var(--mp-radius-xs);
+  cursor: pointer;
+}
+.mp-field-affix__btn:hover { color: var(--mp-accent-dark); }
+
+/* --- Inline notices ---
+   A tinted block with an icon, used for outcomes rather than errors. Distinct
+   from .alert so a success confirmation does not inherit Bootstrap's alert
+   weight, and so the icon column stays aligned when the body wraps. */
+.mp-notice {
+  display: flex;
+  gap: var(--mp-space-3);
+  align-items: flex-start;
+  padding: var(--mp-space-4);
+  border-radius: var(--mp-radius-md);
+  border: 1px solid transparent;
+  font-size: var(--mp-text-sm);
+}
+.mp-notice svg { flex: 0 0 auto; margin-top: 2px; }
+.mp-notice strong { display: block; color: var(--mp-ink); margin-bottom: 2px; }
+.mp-notice p { color: var(--mp-muted); }
+.mp-notice--success {
+  background: var(--mp-success-bg);
+  border-color: color-mix(in srgb, var(--mp-success) 24%, transparent);
+  color: var(--mp-success-fg);
+}
+.mp-notice--warning {
+  background: var(--mp-warning-bg);
+  border-color: color-mix(in srgb, var(--mp-warning) 24%, transparent);
+  color: var(--mp-warning-fg);
+}
+.mp-notice--info {
+  background: var(--mp-info-bg);
+  border-color: color-mix(in srgb, var(--mp-info) 24%, transparent);
+  color: var(--mp-info-fg);
+}
+
+/* Troubleshooting hints under a notice. Markers are removed and replaced with a
+   dash, because a bulleted list of two items reads as heavier than the advice
+   warrants. */
+.mp-hint-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--mp-space-4) 0 0;
+  font-size: var(--mp-text-sm);
+  color: var(--mp-muted);
+}
+.mp-hint-list li {
+  position: relative;
+  padding-left: var(--mp-space-4);
+  margin-bottom: var(--mp-space-2);
+  line-height: var(--mp-leading-body);
+}
+.mp-hint-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 8px;
+  height: 1px;
+  background: var(--mp-border-strong);
+}
+
+/* Right-aligned "Forgot password?" beside a field label. */
+.mp-field-aside {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--mp-space-3);
+}
+.mp-field-aside a { font-size: var(--mp-text-caption); font-weight: var(--mp-weight-medium); }
+
+/* --- Two-step progress, used by the seller sign-up --- */
+.mp-auth__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-2);
+  margin-bottom: var(--mp-space-5);
+}
+.mp-auth__progress-bar {
+  flex: 1;
+  height: 3px;
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-border);
+  overflow: hidden;
+}
+.mp-auth__progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--mp-accent);
+  border-radius: var(--mp-radius-pill);
+  transition: width var(--mp-duration-slow) var(--mp-ease-out);
+}
+.mp-auth__progress-label {
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  color: var(--mp-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Field group heading inside a long form. */
+.mp-auth__legend {
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  letter-spacing: var(--mp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--mp-faint);
+  margin: var(--mp-space-5) 0 var(--mp-space-3);
+}
+.mp-auth__legend:first-child { margin-top: 0; }
+
+/* Two fields side by side on wider viewports, stacked below sm. Used sparingly:
+   a two-column form is harder to scan, so it is only for genuinely paired values
+   (city/state, password/confirm). */
+.mp-auth__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mp-space-3);
+}
+@media (max-width: 575.98px) {
+  .mp-auth__row { grid-template-columns: 1fr; gap: 0; }
+}
+
+/* --- Password strength meter --- */
+.mp-strength { display: flex; gap: 4px; margin-top: var(--mp-space-2); }
+.mp-strength__seg {
+  height: 3px;
+  flex: 1;
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-border);
+  transition: background var(--mp-duration) var(--mp-ease);
+}
+.mp-strength__seg.is-weak { background: var(--mp-danger); }
+.mp-strength__seg.is-fair { background: var(--mp-warning); }
+.mp-strength__seg.is-good { background: var(--mp-success); }
+
+/* ==========================================================================
+   AI layer (Phases 11–14)
+
+   Visually distinct from the marketplace chrome on purpose. AI output is a
+   suggestion, not a marketplace fact, and the interface should say so before the
+   copy has to — hence the violet accent used nowhere else, and the deliberately
+   plain confirmation card.
+   ========================================================================== */
+
+.mp-ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--mp-radius-pill);
+  background: rgba(76, 61, 143, 0.1);
+  color: var(--mp-violet);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---- Launcher ---- */
+.mp-ai-launcher {
+  position: fixed;
+  right: var(--mp-space-5);
+  bottom: var(--mp-space-5);
+  z-index: 55;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.15rem;
+  border: none;
+  border-radius: var(--mp-radius-pill);
+  background: linear-gradient(135deg, var(--mp-violet), var(--mp-primary-dark));
+  color: #fff;
+  font-weight: 650;
+  font-size: 0.9rem;
+  box-shadow: var(--mp-shadow-lg);
+  transition: transform var(--mp-duration) var(--mp-ease), box-shadow var(--mp-duration) var(--mp-ease);
+}
+.mp-ai-launcher:hover { transform: translateY(-2px); box-shadow: var(--mp-shadow-xl); color: #fff; }
+
+/* Clears the mobile sticky CTA so the two never overlap. */
+@media (max-width: 767px) {
+  .mp-ai-launcher { bottom: 88px; right: var(--mp-space-4); }
+}
+
+/* ---- Panel ----
+   A side sheet on desktop, a near-full sheet on mobile. Not a modal: a user should
+   be able to read the page the assistant is talking about. */
+.mp-ai-panel {
+  position: fixed;
+  right: var(--mp-space-5);
+  bottom: var(--mp-space-5);
+  z-index: 56;
+  width: min(420px, calc(100vw - var(--mp-space-6)));
+  height: min(620px, calc(100vh - var(--mp-space-8)));
+  display: flex;
+  flex-direction: column;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-lg);
+  box-shadow: var(--mp-shadow-xl);
+  overflow: hidden;
+  animation: mp-ai-in var(--mp-duration) var(--mp-ease-out);
+}
+@keyframes mp-ai-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+@media (max-width: 575.98px) {
+  .mp-ai-panel {
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 88vh;
+    border-radius: var(--mp-radius-lg) var(--mp-radius-lg) 0 0;
+  }
+}
+
+.mp-ai-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--mp-space-3);
+  padding: var(--mp-space-4);
+  background: linear-gradient(135deg, var(--mp-violet), var(--mp-primary-dark));
+  color: #fff;
+}
+.mp-ai-panel__title { font-weight: 700; font-size: 0.98rem; }
+.mp-ai-panel__subtitle { font-size: 0.76rem; color: rgba(255, 255, 255, 0.75); margin-top: 0.15rem; }
+.mp-ai-panel__header .mp-modal-close { color: #fff; opacity: 0.85; }
+
+.mp-ai-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--mp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mp-space-3);
+  background: var(--mp-surface-muted);
+}
+
+.mp-ai-panel__footer {
+  display: flex;
+  gap: var(--mp-space-2);
+  align-items: flex-end;
+  padding: var(--mp-space-3);
+  border-top: 1px solid var(--mp-border);
+  background: var(--mp-surface);
+}
+.mp-ai-panel__footer textarea { resize: none; font-size: 0.9rem; }
+
+/* ---- Turns ---- */
+.mp-ai-bubble {
+  max-width: 88%;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--mp-radius-md);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.mp-ai-bubble--user {
+  align-self: flex-end;
+  background: var(--mp-primary);
+  color: #fff;
+  border-bottom-right-radius: var(--mp-radius-xs);
+}
+.mp-ai-bubble--assistant {
+  align-self: flex-start;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  color: var(--mp-ink);
+  border-bottom-left-radius: var(--mp-radius-xs);
+}
+
+/* Provenance line: which tools produced the facts in this reply. The single most
+   important trust affordance in the panel. */
+.mp-ai-bubble__provenance {
+  margin-top: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--mp-border);
+  font-size: 0.72rem;
+  color: var(--mp-muted);
+  text-transform: lowercase;
+}
+
+/* A tool turn is machinery, so it reads as a quiet note rather than a message. */
+.mp-ai-tool-note {
+  align-self: center;
+  font-size: 0.72rem;
+  color: var(--mp-muted);
+  font-style: italic;
+}
+
+.mp-ai-typing {
+  align-self: flex-start;
+  font-size: 0.82rem;
+  color: var(--mp-muted);
+}
+.mp-ai-typing::after {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: mp-ai-pulse 1s ease-in-out infinite;
+}
+@keyframes mp-ai-pulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+.mp-ai-empty { color: var(--mp-muted); }
+.mp-ai-suggestion {
+  text-align: left;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-sm);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--mp-ink);
+  font-weight: 550;
+}
+.mp-ai-suggestion:hover { border-color: var(--mp-violet); color: var(--mp-violet); }
+
+/* ---- Confirmation ----
+   Deliberately plain and amber-edged. Neither button is styled as the default,
+   because a confirmation prompt that nudges is not a confirmation. */
+.mp-ai-confirm {
+  align-self: stretch;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-accent);
+  border-left-width: 3px;
+  border-radius: var(--mp-radius-sm);
+  padding: var(--mp-space-3);
+}
+.mp-ai-confirm__label {
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mp-accent-dark);
+  margin-bottom: 0.3rem;
+}
+.mp-ai-confirm__summary { font-size: 0.88rem; color: var(--mp-ink); margin: 0 0 0.7rem; }
+.mp-ai-confirm--done {
+  border-color: var(--mp-status-published-fg);
+  color: var(--mp-status-published-fg);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.mp-ai-confirm--declined {
+  border-color: var(--mp-border-strong);
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+}
+
+/* ---- Requirement builder ---- */
+.mp-ai-builder {
+  background: linear-gradient(135deg, rgba(76, 61, 143, 0.05), var(--mp-primary-soft));
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  padding: var(--mp-space-4);
+}
+.mp-ai-builder__result {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-sm);
+  padding: var(--mp-space-3);
+}
+.mp-ai-field {
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-xs);
+  padding: 0.45rem 0.6rem;
+  height: 100%;
+}
+/* Low extraction confidence gets a visible flag. A confidently wrong budget that
+   nobody was prompted to check is the worst outcome this feature can produce. */
+.mp-ai-field.is-uncertain { border-color: var(--mp-accent); background: var(--mp-accent-light); }
+.mp-ai-field__label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mp-muted); font-weight: 650; }
+.mp-ai-field__flag { color: var(--mp-accent-dark); }
+.mp-ai-field__value { font-size: 0.88rem; font-weight: 600; color: var(--mp-ink); }
+
+.mp-ai-questions { margin: 0; padding-left: 1.1rem; font-size: 0.85rem; color: var(--mp-ink); }
+.mp-ai-questions li { padding: 0.15rem 0; }
+
+/* Reduced motion: the global rule at the bottom of this file already neutralises
+   these animations, so nothing extra is needed here. */
+
+/* ==========================================================================
+   Notification bell (navbar)
+
+   Anchored to the trigger rather than rendered in a portal. A portal would be
+   needed if the navbar clipped its overflow or created a stacking context that
+   trapped the panel; it does not, so the simpler positioning is correct and keeps
+   focus order matching visual order without a focus-trap workaround.
+   ========================================================================== */
+.mp-bell { position: relative; display: inline-flex; }
+
+.mp-bell__trigger {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid transparent;
+  border-radius: var(--mp-radius-md);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--mp-duration) var(--mp-ease), border-color var(--mp-duration) var(--mp-ease);
+}
+.mp-bell__trigger:hover { background: var(--mp-surface-sunken); border-color: var(--mp-border); }
+.mp-bell__trigger[aria-expanded='true'] { background: var(--mp-surface-sunken); border-color: var(--mp-border); }
+
+/*
+ * The badge.
+ *
+ * Uses the danger colour because unread work is the one thing on the navbar that
+ * is genuinely time-sensitive. Colour is never the only carrier — the count is in
+ * the trigger's aria-label, so the information survives for a screen reader and
+ * for anyone who cannot distinguish the red.
+ */
+.mp-bell__badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-danger);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: var(--mp-weight-bold);
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  /* Separates the badge from whatever sits behind it in the navbar. */
+  box-shadow: 0 0 0 2px var(--mp-surface);
+}
+
+.mp-bell__panel {
+  position: absolute;
+  top: calc(100% + var(--mp-space-2));
+  right: 0;
+  width: min(24rem, calc(100vw - 2rem));
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-lg);
+  box-shadow: var(--mp-shadow-xl);
+  z-index: var(--mp-z-drawer);
+  overflow: hidden;
+}
+
+.mp-bell__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mp-space-3);
+  padding: var(--mp-space-4);
+  border-bottom: 1px solid var(--mp-border);
+  font-size: var(--mp-text-sm);
+}
+.mp-bell__action {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: var(--mp-text-caption);
+  font-weight: var(--mp-weight-semibold);
+  color: var(--mp-accent-dark);
+  cursor: pointer;
+}
+.mp-bell__action:hover { color: var(--mp-accent-darker); text-decoration: underline; }
+
+.mp-bell__body { padding: var(--mp-space-4); }
+
+.mp-bell__empty {
+  padding: var(--mp-space-6) var(--mp-space-5);
+  text-align: center;
+  color: var(--mp-muted);
+  font-size: var(--mp-text-sm);
+}
+.mp-bell__empty svg { color: var(--mp-faint); margin-bottom: var(--mp-space-3); }
+
+.mp-bell__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* Caps the panel at roughly five rows and scrolls the rest, so a busy inbox
+     cannot grow a dropdown taller than the viewport. */
+  max-height: 26rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.mp-bell__list li + li { border-top: 1px solid var(--mp-border); }
+
+.mp-bell__item {
+  display: flex;
+  gap: var(--mp-space-3);
+  width: 100%;
+  padding: var(--mp-space-4);
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--mp-duration-fast) var(--mp-ease);
+}
+.mp-bell__item:hover { background: var(--mp-surface-muted); }
+
+/*
+ * Unread is marked three ways: a tinted background, a left accent bar, and a
+ * semibold title. Redundant on purpose — background tint alone is easy to miss at
+ * a glance and invisible in high-contrast mode, and the "(unread)" text in the
+ * markup covers assistive technology.
+ */
+.mp-bell__item.is-unread {
+  background: var(--mp-accent-soft);
+  box-shadow: inset 3px 0 0 var(--mp-accent);
+}
+.mp-bell__item.is-unread:hover { background: var(--mp-accent-light); }
+.mp-bell__item.is-unread .mp-bell__title { font-weight: var(--mp-weight-semibold); }
+
+.mp-bell__icon {
+  flex: 0 0 30px;
+  height: 30px;
+  border-radius: var(--mp-radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--mp-surface-sunken);
+  color: var(--mp-muted);
+}
+/* Importance drives the icon tint: action means someone is waiting on you, alert
+   means something went wrong, info is progress. */
+.mp-bell__icon--action { background: var(--mp-accent-light); color: var(--mp-accent-dark); }
+.mp-bell__icon--alert { background: var(--mp-danger-bg); color: var(--mp-danger-fg); }
+.mp-bell__icon--info { background: var(--mp-info-bg); color: var(--mp-info-fg); }
+
+.mp-bell__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mp-bell__title {
+  font-size: var(--mp-text-sm);
+  color: var(--mp-ink);
+  font-weight: var(--mp-weight-medium);
+}
+.mp-bell__body-text {
+  font-size: var(--mp-text-caption);
+  color: var(--mp-muted);
+  line-height: var(--mp-leading-body);
+  /* Two lines then ellipsis: the full text is on the destination page, and a
+     dropdown row that grows to six lines pushes everything else out of view. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mp-bell__time { font-size: var(--mp-text-micro); color: var(--mp-faint); }
+
+@media (max-width: 575.98px) {
+  /* Anchored to the viewport rather than the trigger below sm, so a panel opened
+     from a bell near the right edge cannot overflow off-screen. */
+  .mp-bell__panel {
+    position: fixed;
+    top: calc(var(--mp-navbar-height) + var(--mp-space-2));
+    right: var(--mp-space-3);
+    left: var(--mp-space-3);
+    width: auto;
+  }
+}
+
+/* ==========================================================================
+   Grouped dashboard sidebar
+
+   Replaces a flat sixteen-item column. The grouping is the substance; these
+   styles only need to make the group boundaries legible without adding so much
+   chrome that the list gets longer. Hence headings in small caps and a single
+   hairline, rather than boxes per section.
+   ========================================================================== */
+/* Layout only — the surface, border and padding are set on .mp-sidebar in the
+   Dashboard section above, and the two declarations are complementary. */
+.mp-sidebar { display: flex; flex-direction: column; gap: var(--mp-space-5); }
+
+.mp-sidebar__group { display: flex; flex-direction: column; gap: 2px; }
+
+.mp-sidebar__heading {
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  letter-spacing: var(--mp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--mp-faint);
+  margin: 0 0 var(--mp-space-2) var(--mp-space-3);
+}
+
+.mp-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-3);
+  padding: var(--mp-space-2) var(--mp-space-3);
+  border-radius: var(--mp-radius-sm);
+  color: var(--mp-body);
+  font-size: var(--mp-text-sm);
+  font-weight: var(--mp-weight-medium);
+  text-decoration: none;
+  transition: background var(--mp-duration-fast) var(--mp-ease), color var(--mp-duration-fast) var(--mp-ease);
+}
+.mp-sidebar__link:hover { background: var(--mp-surface-sunken); color: var(--mp-ink); }
+
+/*
+ * Active state carries a left bar as well as a tint.
+ *
+ * On a grouped list the tint alone is ambiguous — it reads much like hover — and
+ * a user who has just navigated needs to find their position without moving the
+ * mouse to test it.
+ */
+.mp-sidebar__link.is-active {
+  background: var(--mp-accent-light);
+  color: var(--mp-accent-darker);
+  font-weight: var(--mp-weight-semibold);
+  box-shadow: inset 2px 0 0 var(--mp-accent);
+}
+
+.mp-sidebar__icon { flex: 0 0 auto; opacity: 0.7; }
+.mp-sidebar__link.is-active .mp-sidebar__icon { opacity: 1; }
+
+/* Pushes the count to the right edge and lets long labels truncate rather than
+   wrap, so row height stays uniform down the column. */
+.mp-sidebar__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-sidebar__count {
+  flex: 0 0 auto;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-accent);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: var(--mp-weight-bold);
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   "Needs you" action queue
+
+   Opens the dashboard overview. Deliberately looks like a task list rather than
+   a set of stat cards: the rows are things to do, and a card grid would imply
+   they are figures to read.
+   ========================================================================== */
+.mp-queue {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-lg);
+  box-shadow: var(--mp-shadow-sm);
+  overflow: hidden;
+  margin-bottom: var(--mp-space-5);
+}
+
+.mp-queue__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--mp-space-3);
+  padding: var(--mp-space-4) var(--mp-space-5);
+  border-bottom: 1px solid var(--mp-border);
+}
+.mp-queue__title { font-size: var(--mp-text-h4); margin: 0; }
+.mp-queue__total { font-size: var(--mp-text-caption); color: var(--mp-muted); font-variant-numeric: tabular-nums; }
+
+.mp-queue__list { list-style: none; margin: 0; padding: 0; }
+.mp-queue__list li + li { border-top: 1px solid var(--mp-border); }
+
+.mp-queue__item {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-3);
+  padding: var(--mp-space-4) var(--mp-space-5);
+  color: var(--mp-ink);
+  text-decoration: none;
+  font-size: var(--mp-text-sm);
+  transition: background var(--mp-duration-fast) var(--mp-ease);
+}
+.mp-queue__item:hover { background: var(--mp-surface-muted); color: var(--mp-ink); }
+
+.mp-queue__icon {
+  flex: 0 0 34px;
+  height: 34px;
+  border-radius: var(--mp-radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--mp-surface-sunken);
+  color: var(--mp-muted);
+}
+/*
+ * Urgent rows are tinted amber, not red.
+ *
+ * Red is reserved for failures — a payment that did not go through, a dispute
+ * decided against you. These rows are work that is waiting, which is normal
+ * business, and colouring routine work as an error makes the genuine errors
+ * indistinguishable.
+ */
+.mp-queue__item--urgent .mp-queue__icon { background: var(--mp-warning-bg); color: var(--mp-warning-fg); }
+.mp-queue__item--normal .mp-queue__icon { background: var(--mp-accent-light); color: var(--mp-accent-dark); }
+
+.mp-queue__label { flex: 1 1 auto; }
+.mp-queue__chevron { flex: 0 0 auto; color: var(--mp-faint); }
+.mp-queue__item:hover .mp-queue__chevron { color: var(--mp-accent-dark); }
+
+.mp-queue__clear {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-2);
+  padding: var(--mp-space-3) var(--mp-space-4);
+  margin-bottom: var(--mp-space-5);
+  border-radius: var(--mp-radius-md);
+  background: var(--mp-success-bg);
+  color: var(--mp-success-fg);
+  font-size: var(--mp-text-sm);
+}
+
+@media (max-width: 575.98px) {
+  .mp-queue__head,
+  .mp-queue__item { padding-left: var(--mp-space-4); padding-right: var(--mp-space-4); }
+}
+
+/* ==========================================================================
+   Navbar search
+
+   Sits between the nav links and the account cluster. Search is primary
+   navigation on a marketplace, and before this it existed only on the homepage —
+   so once a user went anywhere, there was no way to search without going back.
+   ========================================================================== */
+.mp-navsearch {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-2);
+  flex: 1 1 auto;
+  max-width: 22rem;
+  padding: 0 var(--mp-space-2) 0 var(--mp-space-3);
+  height: 38px;
+  background: var(--mp-surface-sunken);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-pill);
+  transition: border-color var(--mp-duration) var(--mp-ease), background var(--mp-duration) var(--mp-ease);
+}
+.mp-navsearch:focus-within {
+  background: var(--mp-surface);
+  border-color: var(--mp-accent);
+  box-shadow: var(--mp-shadow-focus);
+}
+.mp-navsearch__glyph { flex: 0 0 auto; color: var(--mp-faint); }
+
+.mp-navsearch__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: var(--mp-text-sm);
+  color: var(--mp-ink);
+  outline: none;
+}
+.mp-navsearch__input::placeholder { color: var(--mp-faint); }
+/* The ring lives on the wrapper via :focus-within, so the input itself must not
+   draw a second one inside it. */
+.mp-navsearch__input:focus-visible { outline: none; }
+
+.mp-navsearch__submit {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-accent);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background var(--mp-duration) var(--mp-ease);
+}
+.mp-navsearch__submit:hover { background: var(--mp-accent-dark); }
+
+.mp-navsearch__icon-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid transparent;
+  border-radius: var(--mp-radius-md);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.mp-navsearch__icon-btn:hover { background: var(--mp-surface-sunken); border-color: var(--mp-border); }
+
+/* Expanded over the navbar row below lg, so it can use the full width instead of
+   competing with the logo and the menu toggle for a phone's 360px. */
+@media (max-width: 991.98px) {
+  .mp-navsearch.is-expanded {
+    position: absolute;
+    left: var(--mp-space-3);
+    right: var(--mp-space-3);
+    max-width: none;
+    z-index: var(--mp-z-navbar);
+    background: var(--mp-surface);
+  }
+}
+
+/* ==========================================================================
+   Verification checklist (business passport)
+
+   Renders the five independent checks the API already returned but nothing ever
+   displayed to a buyer. Deliberately a list, not badges: a row of five green pills
+   reads as decoration, whereas a checklist reads as evidence — and the pending
+   rows have to be as legible as the confirmed ones for the list to mean anything.
+   ========================================================================== */
+.mp-checks { list-style: none; margin: 0; padding: 0; }
+
+.mp-checks li {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-2);
+  padding: var(--mp-space-2) 0;
+  font-size: var(--mp-text-sm);
+  border-bottom: 1px solid var(--mp-border);
+}
+.mp-checks li:last-child { border-bottom: 0; }
+
+.mp-checks li.is-done { color: var(--mp-ink); }
+.mp-checks li.is-done svg { color: var(--mp-success); }
+
+/*
+ * Pending rows are muted, never red.
+ *
+ * An unconfirmed check is an absence of evidence, not a failure — a new supplier
+ * is unproven, not untrustworthy. Colouring it as an error would quietly libel
+ * every business that has not finished onboarding.
+ */
+.mp-checks li.is-pending { color: var(--mp-muted); }
+.mp-checks li.is-pending svg { color: var(--mp-faint); }
+
+.mp-checks__label { flex: 1 1 auto; }
+.mp-checks__state {
+  flex: 0 0 auto;
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  letter-spacing: var(--mp-tracking-wide);
+  text-transform: uppercase;
+}
+.mp-checks li.is-done .mp-checks__state { color: var(--mp-success-fg); }
+.mp-checks li.is-pending .mp-checks__state { color: var(--mp-faint); }
+
+/* ==========================================================================
+   Order protection panel
+
+   Collapsed by default. A buyer mid-transaction wants the order, not a policy
+   essay, so the summary row carries the reassurance and the detail is opt-in.
+   ========================================================================== */
+.mp-protect {
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-md);
+  background: var(--mp-surface);
+  margin-bottom: var(--mp-space-4);
+  overflow: hidden;
+}
+
+.mp-protect__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-3);
+  width: 100%;
+  padding: var(--mp-space-3) var(--mp-space-4);
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--mp-duration-fast) var(--mp-ease);
+}
+.mp-protect__summary:hover { background: var(--mp-surface-muted); }
+
+.mp-protect__icon {
+  flex: 0 0 34px;
+  height: 34px;
+  border-radius: var(--mp-radius-sm);
+  display: grid;
+  place-items: center;
+  /* Teal, not the indigo accent: this is an informational assurance, not the
+     next action on the page, and it must not compete with the primary button. */
+  background: var(--mp-teal-light);
+  color: var(--mp-teal-dark);
+}
+.mp-protect__text { flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mp-protect__text strong { font-size: var(--mp-text-sm); color: var(--mp-ink); }
+.mp-protect__chevron { flex: 0 0 auto; color: var(--mp-faint); }
+
+.mp-protect__detail {
+  padding: 0 var(--mp-space-4) var(--mp-space-4);
+  border-top: 1px solid var(--mp-border);
+  padding-top: var(--mp-space-4);
+}
+
+.mp-protect__list { list-style: none; margin: 0 0 var(--mp-space-4); padding: 0; display: grid; gap: var(--mp-space-3); }
+.mp-protect__list li {
+  display: flex;
+  gap: var(--mp-space-3);
+  align-items: flex-start;
+  font-size: var(--mp-text-sm);
+  color: var(--mp-muted);
+  line-height: var(--mp-leading-body);
+}
+.mp-protect__list li svg { flex: 0 0 auto; margin-top: 3px; color: var(--mp-teal); }
+.mp-protect__list strong { color: var(--mp-ink); display: block; font-weight: var(--mp-weight-semibold); }
+
+/*
+ * The caveat that we do not hold funds.
+ *
+ * Amber and inside the same panel as the guarantees, on purpose. A limitation
+ * moved to a separate section, or to terms elsewhere, is a limitation nobody
+ * reads — and this is the one fact a buyer needs before deciding how much to pay
+ * up front.
+ */
+.mp-protect__caveat {
+  display: flex;
+  gap: var(--mp-space-3);
+  align-items: flex-start;
+  padding: var(--mp-space-3);
+  margin-bottom: var(--mp-space-4);
+  border-radius: var(--mp-radius-sm);
+  background: var(--mp-warning-bg);
+  color: var(--mp-warning-fg);
+  font-size: var(--mp-text-caption);
+  line-height: var(--mp-leading-body);
+}
+.mp-protect__caveat svg { flex: 0 0 auto; margin-top: 2px; }
+.mp-protect__caveat strong { display: block; }
+
+/* ==========================================================================
+   Account menu (navbar)
+
+   Replaces four loose controls — a Dashboard link, a bare avatar, a Log out
+   button and, on some roles, a second nav link — with one trigger. That crowding
+   is what pushed the nav links onto two lines and truncated the search
+   placeholder; removing three controls from the row is the actual fix, not
+   shrinking the font.
+   ========================================================================== */
+.mp-account { position: relative; display: inline-flex; }
+
+.mp-account__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mp-space-1);
+  padding: 3px 6px 3px 3px;
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-pill);
+  background: var(--mp-surface);
+  color: var(--mp-muted);
+  cursor: pointer;
+  transition: border-color var(--mp-duration) var(--mp-ease), box-shadow var(--mp-duration) var(--mp-ease);
+}
+.mp-account__trigger:hover { border-color: var(--mp-border-strong); box-shadow: var(--mp-shadow-xs); }
+.mp-account__trigger[aria-expanded='true'] { border-color: var(--mp-accent); box-shadow: var(--mp-shadow-focus); }
+
+.mp-account__avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--mp-radius-pill);
+  /* Indigo rather than the flat near-black the old .mp-avatar used, which on a
+     white navbar looked like an unloaded image. */
+  background: var(--mp-gradient-accent);
+  color: #ffffff;
+  font-size: var(--mp-text-caption);
+  font-weight: var(--mp-weight-bold);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.mp-account__avatar--lg { width: 40px; height: 40px; font-size: var(--mp-text-body); }
+
+.mp-account__caret { transition: transform var(--mp-duration) var(--mp-ease); }
+.mp-account__caret.is-open { transform: rotate(180deg); }
+
+.mp-account__panel {
+  position: absolute;
+  top: calc(100% + var(--mp-space-2));
+  right: 0;
+  width: 15rem;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius-lg);
+  box-shadow: var(--mp-shadow-xl);
+  z-index: var(--mp-z-drawer);
+  overflow: hidden;
+}
+
+.mp-account__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-3);
+  padding: var(--mp-space-4);
+  border-bottom: 1px solid var(--mp-border);
+}
+/* min-width: 0 is required for the email truncation below to take effect inside
+   a flex child. */
+.mp-account__who { display: flex; flex-direction: column; min-width: 0; }
+.mp-account__who strong {
+  font-size: var(--mp-text-sm);
+  color: var(--mp-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mp-account__email {
+  font-size: var(--mp-text-micro);
+  color: var(--mp-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mp-account__role {
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  letter-spacing: var(--mp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--mp-accent-dark);
+  margin-top: 2px;
+}
+
+.mp-account__group { padding: var(--mp-space-2); }
+.mp-account__group--last { border-top: 1px solid var(--mp-border); }
+
+.mp-account__item {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-3);
+  width: 100%;
+  padding: var(--mp-space-2) var(--mp-space-3);
+  border: 0;
+  border-radius: var(--mp-radius-sm);
+  background: none;
+  color: var(--mp-body);
+  font-size: var(--mp-text-sm);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  /* Comfortable target without making a six-item menu tall. */
+  min-height: 36px;
+  transition: background var(--mp-duration-fast) var(--mp-ease), color var(--mp-duration-fast) var(--mp-ease);
+}
+.mp-account__item:hover { background: var(--mp-surface-sunken); color: var(--mp-ink); }
+.mp-account__item svg { flex-shrink: 0; opacity: 0.7; }
+
+/* Log out is the only destructive-ish item, and it is separated by a rule as well
+   as coloured — a red row alone is easy to hit by accident on a phone. */
+.mp-account__item--danger { color: var(--mp-danger-fg); }
+.mp-account__item--danger:hover { background: var(--mp-danger-bg); color: var(--mp-danger-dark); }
+
+@media (max-width: 575.98px) {
+  .mp-account__panel {
+    position: fixed;
+    top: calc(var(--mp-navbar-height) + var(--mp-space-2));
+    right: var(--mp-space-3);
+    left: auto;
+    width: min(15rem, calc(100vw - 1.5rem));
+  }
+}
+
+/* ==========================================================================
+   Navbar search sizing correction
+
+   The field was `flex: 1 1 auto` inside a `flex-grow-1` wrapper, so it absorbed
+   every spare pixel and then some — starving the nav links until they wrapped and
+   clipping its own placeholder mid-word ("Search suppliers or service").
+
+   Now it has a sensible basis and a hard ceiling, and yields space rather than
+   taking it.
+   ========================================================================== */
+.mp-navsearch {
+  flex: 0 1 18rem;
+  min-width: 9rem;
+  max-width: 20rem;
+}
+/* Below xl there is not enough room for three nav links, a search field and the
+   action cluster. Search keeps the space it needs and the links stay on one line. */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .mp-navsearch { flex-basis: 12rem; max-width: 14rem; }
+}
+
+/* ==========================================================================
+   Mobile nav sheet — grouped to match the desktop account menu
+   ========================================================================== */
+.mp-navsheet__who {
+  display: flex;
+  align-items: center;
+  gap: var(--mp-space-3);
+  padding-bottom: var(--mp-space-3);
+  margin-bottom: var(--mp-space-3);
+  border-bottom: 1px solid var(--mp-border);
+}
+.mp-navsheet__who strong { display: block; font-size: var(--mp-text-sm); color: var(--mp-ink); }
+
+.mp-navsheet__group { display: flex; flex-direction: column; padding-top: var(--mp-space-3); }
+.mp-navsheet__group--last { border-top: 1px solid var(--mp-border); margin-top: var(--mp-space-2); }
+
+.mp-navsheet__heading {
+  font-size: var(--mp-text-micro);
+  font-weight: var(--mp-weight-semibold);
+  letter-spacing: var(--mp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--mp-faint);
+  margin-bottom: var(--mp-space-2);
+}
+
+/*
+ * Log out, styled as its own thing and behind a rule.
+ *
+ * It previously sat as a plain link immediately below "Dashboard" in one flat
+ * column, which on a phone is a mis-tap away from the most-used item.
+ */
+.mp-navsheet__danger {
+  background: none;
+  border: 0;
+  padding: var(--mp-space-3) 0;
+  text-align: left;
+  font-size: var(--mp-text-sm);
+  font-weight: var(--mp-weight-semibold);
+  color: var(--mp-danger-fg);
+  min-height: 44px;
+  cursor: pointer;
+}

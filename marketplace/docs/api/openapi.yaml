@@ -1,0 +1,251 @@
+openapi: 3.0.3
+info:
+  title: Local Marketplace API
+  version: 1.0.0
+  description: REST API for the local marketplace platform (v1)
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+
+tags:
+  - name: Auth
+  - name: Categories
+  - name: Listings
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, password_confirmation]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                password_confirmation: { type: string }
+      responses:
+        '201':
+          description: User registered
+        '422':
+          description: Validation error
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and receive bearer token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Login successful
+        '422':
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      summary: Revoke current token
+      responses:
+        '200':
+          description: Logged out
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      summary: Get authenticated user
+      responses:
+        '200':
+          description: Current user
+
+  /categories:
+    get:
+      tags: [Categories]
+      summary: List active categories
+      responses:
+        '200':
+          description: Category list
+
+  /categories/{slug}/attribute-definitions:
+    get:
+      tags: [Categories]
+      summary: Get attribute schema for a category
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Attribute definitions
+        '404':
+          description: Category not found
+
+  /listings:
+    get:
+      tags: [Listings]
+      summary: Browse published listings
+      parameters:
+        - name: filter[category]
+          in: query
+          schema: { type: string }
+        - name: filter[city]
+          in: query
+          schema: { type: string }
+        - name: filter[currency]
+          in: query
+          schema: { type: string }
+        - name: filter[min_price]
+          in: query
+          schema: { type: number }
+        - name: filter[max_price]
+          in: query
+          schema: { type: number }
+        - name: filter[property_type]
+          in: query
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema: { type: string, example: "-created_at" }
+        - name: page
+          in: query
+          schema: { type: integer }
+        - name: per_page
+          in: query
+          schema: { type: integer, maximum: 100 }
+      responses:
+        '200':
+          description: Paginated listings
+
+    post:
+      tags: [Listings]
+      security: [{ bearerAuth: [] }]
+      summary: Create and auto-publish a listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingInput'
+      responses:
+        '201':
+          description: Listing created
+        '401':
+          description: Unauthenticated
+        '422':
+          description: Validation error
+
+  /listings/{id}:
+    get:
+      tags: [Listings]
+      summary: Get listing by UUID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Listing detail
+        '404':
+          description: Not found
+
+    patch:
+      tags: [Listings]
+      security: [{ bearerAuth: [] }]
+      summary: Update a listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingUpdateInput'
+      responses:
+        '200':
+          description: Listing updated
+
+    delete:
+      tags: [Listings]
+      security: [{ bearerAuth: [] }]
+      summary: Archive a listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Archived
+
+  /users/me/listings:
+    get:
+      tags: [Listings]
+      security: [{ bearerAuth: [] }]
+      summary: List current user's listings
+      responses:
+        '200':
+          description: Paginated user listings
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+
+  schemas:
+    ListingInput:
+      type: object
+      required: [category_slug, title, price]
+      properties:
+        category_slug: { type: string, example: real_estate }
+        title: { type: string }
+        description: { type: string }
+        price: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3, example: INR }
+        location:
+          type: object
+          properties:
+            city: { type: string }
+            state: { type: string }
+            country: { type: string }
+            postal_code: { type: string }
+        attributes:
+          type: object
+          additionalProperties: true
+          example:
+            property_type: apartment
+            listing_type: sale
+            bedrooms: 2
+
+    ListingUpdateInput:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        price: { type: number }
+        currency: { type: string }
+        location:
+          type: object
+        attributes:
+          type: object

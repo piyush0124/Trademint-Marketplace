@@ -2,8 +2,21 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 const TOKEN_KEY = 'marketplace_token';
 
+// In production the API URL must come from the VITE_API_URL environment variable
+// (set it in Vercel). The localhost fallback only applies during local development.
+const API_URL: string =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.DEV ? 'http://localhost:8000/api/v1' : '');
+
+if (!API_URL) {
+  // eslint-disable-next-line no-console
+  console.error(
+    'VITE_API_URL is not set. Add it in your hosting environment variables and redeploy.',
+  );
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api/v1',
+  baseURL: API_URL.replace(/\/+$/, ''), // strip any trailing slash
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',
